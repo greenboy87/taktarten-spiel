@@ -1,0 +1,754 @@
+/* ============================================================
+   NOTEN: Bausteine, Vergleich, SVG-Zeichnung.
+   Rhythmen werden nicht aus einzelnen Noten gebaut, sondern aus
+   fertigen Bausteinen - meist genau eine Zaehlzeit lang. Das hat
+   zwei Vorteile: Auf dem Geraet tippt man zwei- statt fuenfmal,
+   und die Balkenregel ("ein Balken bleibt innerhalb der Zaehlzeit")
+   ist damit von selbst erfuellt.
+   Ein Rhythmus ist die Folge der Kuerzel, mit "-" verbunden:
+   "V-AA-Vp-SSSS". Diese Datei kommt aus musik-quiz/index.html,
+   Abschnitt "RHYTHMUS: FRAGMENTE UND NOTENSCHRIFT".
+   ============================================================ */
+
+const RHYTHMUS_BAUSTEINE = [
+    { code: 'G',    dauer: 4,   wort: 'Ganze',          teile: [{ d: 4 }] },
+    { code: 'H',    dauer: 2,   wort: 'Halbe',          teile: [{ d: 2 }] },
+    { code: 'V',    dauer: 1,   wort: 'Viertel',        teile: [{ d: 1 }] },
+    { code: 'AA',   dauer: 1,   wort: 'Zwei Achtel',    teile: [{ d: .5 }, { d: .5 }] },
+    { code: 'AdS',  dauer: 1,   wort: 'Punktierte Achtel + Sechzehntel', teile: [{ d: .75 }, { d: .25 }] },
+    { code: 'SAd',  dauer: 1,   wort: 'Sechzehntel + punktierte Achtel',  teile: [{ d: .25 }, { d: .75 }] },
+    { code: 'ASS',  dauer: 1,   wort: 'Achtel + 2 Sechzehntel', teile: [{ d: .5 }, { d: .25 }, { d: .25 }] },
+    { code: 'SSA',  dauer: 1,   wort: '2 Sechzehntel + Achtel', teile: [{ d: .25 }, { d: .25 }, { d: .5 }] },
+    { code: 'SAS',  dauer: 1,   wort: 'Sechzehntel + Achtel + Sechzehntel', teile: [{ d: .25 }, { d: .5 }, { d: .25 }] },
+    { code: 'SSSS', dauer: 1,   wort: 'Vier Sechzehntel',       teile: [{ d: .25 }, { d: .25 }, { d: .25 }, { d: .25 }] },
+    /* Triolen: drei (bzw. sechs) gleich lange Noten in der Zeit, die sonst
+       zwei (bzw. vier) brauchen. Keine binaere Dauer, deshalb als Bruch statt
+       als Dezimalzahl - 1/3 und 1/6 bleiben so exakt und vergleichbar. Das
+       "triole"-Feld sagt dem Zeichner, welche Klammerzahl ueber den Balken
+       gehoert; die Balkenbreite fuer diese Dauern steht eigens in VORSCHUB. */
+    { code: 'A3',   dauer: 1,   wort: 'Achteltriole (3 in der Zeit von 2)', triole: 3, teile: [{ d: 1 / 3 }, { d: 1 / 3 }, { d: 1 / 3 }] },
+    { code: 'S3',   dauer: .5,  wort: 'Sechzehntel-Triole (3 in der Zeit von 2)', triole: 3, teile: [{ d: 1 / 6 }, { d: 1 / 6 }, { d: 1 / 6 }] },
+    { code: 'S6',   dauer: 1,   wort: 'Sechstole (6 in der Zeit von 4)', triole: 6, teile: [{ d: 1 / 6 }, { d: 1 / 6 }, { d: 1 / 6 }, { d: 1 / 6 }, { d: 1 / 6 }, { d: 1 / 6 }] },
+    { code: 'A',    dauer: .5,  wort: 'Achtel einzeln', teile: [{ d: .5 }] },
+    { code: 'SS',   dauer: .5,  wort: 'Zwei Sechzehntel', teile: [{ d: .25 }, { d: .25 }] },
+
+    { code: 'Gp',   dauer: 4,   wort: 'Ganze Pause',    pausenreihe: true, teile: [{ d: 4, p: true }] },
+    { code: 'Hp',   dauer: 2,   wort: 'Halbe Pause',    pausenreihe: true, teile: [{ d: 2, p: true }] },
+    { code: 'Vp',   dauer: 1,   wort: 'Viertelpause',   pausenreihe: true, teile: [{ d: 1, p: true }] },
+    { code: 'pA',   dauer: 1,   wort: 'Pause + Achtel', pausenreihe: true, teile: [{ d: .5, p: true }, { d: .5 }] },
+    { code: 'Ap',   dauer: 1,   wort: 'Achtel + Pause', pausenreihe: true, teile: [{ d: .5 }, { d: .5, p: true }] },
+    { code: 'pSSS', dauer: 1,   wort: 'Sechzehntelpause + 3 Sechzehntel', pausenreihe: true, teile: [{ d: .25, p: true }, { d: .25 }, { d: .25 }, { d: .25 }] },
+    { code: 'pSA',  dauer: 1,   wort: 'Sechzehntelpause + Sechzehntel + Achtel', pausenreihe: true, teile: [{ d: .25, p: true }, { d: .25 }, { d: .5 }] },
+    { code: 'pAS',  dauer: 1,   wort: 'Sechzehntelpause + Achtel + Sechzehntel', pausenreihe: true, teile: [{ d: .25, p: true }, { d: .5 }, { d: .25 }] },
+    { code: 'pAd',  dauer: 1,   wort: 'Sechzehntelpause + punktierte Achtel',    pausenreihe: true, teile: [{ d: .25, p: true }, { d: .75 }] },
+    { code: 'pdS',  dauer: 1,   wort: 'Punktierte Achtelpause + Sechzehntel',    pausenreihe: true, teile: [{ d: .75, p: true }, { d: .25 }] },
+    { code: 'P',    dauer: .5,  wort: 'Achtelpause',    pausenreihe: true, teile: [{ d: .5, p: true }] }
+];
+const RHYTHMUS_NACH_CODE = {};
+RHYTHMUS_BAUSTEINE.forEach(b => { RHYTHMUS_NACH_CODE[b.code] = b; });
+
+/* ---------- Akzente ----------
+   Ein Akzent gehoert zu einer einzelnen Note (einem Teil) eines Bausteins.
+   Die Baustein-Objekte oben sind geteilt - ein akzentuierter Baustein ist
+   deshalb eine eigene Kopie mit "akzente": [Teil-Index, ...] (0-basiert,
+   nur Noten, keine Pausen). Ohne Akzente bleibt es das geteilte Objekt.
+   Kuerzel im Link: Code + "!" + Teilnummern 1-basiert, z.B. "SSSS!13" =
+   erste und dritte Sechzehntel betont, "V!1" = betonte Viertel. */
+function bausteinMitAkzenten(baustein, akzente) {
+    const basis = RHYTHMUS_NACH_CODE[baustein.code] || baustein;
+    const liste = [...new Set(akzente || [])]
+        .filter(i => Number.isInteger(i) && i >= 0 && i < basis.teile.length && !basis.teile[i].p)
+        .sort((a, b) => a - b);
+    return liste.length ? Object.assign({}, basis, { akzente: liste }) : basis;
+}
+function akzentUmschalten(baustein, teil) {
+    const a = new Set(baustein.akzente || []);
+    if (a.has(teil)) a.delete(teil); else a.add(teil);
+    return bausteinMitAkzenten(baustein, [...a]);
+}
+function istAkzent(baustein, teil) { return !!(baustein.akzente && baustein.akzente.includes(teil)); }
+function bausteinKuerzel(baustein) {
+    return baustein.code + (baustein.akzente && baustein.akzente.length ? '!' + baustein.akzente.map(i => i + 1).join('') : '');
+}
+/* "SSSS!13" -> Baustein (mit Akzenten), unbekannter Code -> null */
+function bausteinAusKuerzel(text) {
+    const [code, akz] = String(text || '').split('!');
+    const b = RHYTHMUS_NACH_CODE[code];
+    if (!b) return null;
+    return akz ? bausteinMitAkzenten(b, akz.split('').map(z => Number(z) - 1)) : b;
+}
+function hatAkzente(stueck) {
+    return (stueck.takte || []).some(t => t.bausteine.some(b => b.akzente && b.akzente.length));
+}
+
+function rhythmusLesen(text) {
+    return String(text || '').split('-').map(c => RHYTHMUS_NACH_CODE[c]).filter(Boolean);
+}
+function rhythmusSchreiben(liste) { return liste.map(b => b.code).join('-'); }
+function rhythmusDauer(liste) { return liste.reduce((a, b) => a + b.dauer, 0); }
+
+/* Derselbe Rhythmus, anders geschrieben: Zwei Achtel im Verbund klingen wie
+   zwei einzeln notierte. Verglichen wird deshalb nicht die Folge der
+   Bausteine, sondern das, was man hoert - jeder Baustein in seine Werte
+   zerlegt und benachbarte Pausen bzw. (im Klatschmodus) Pausen nach Noten
+   zusammengefasst. */
+function rhythmusKern(code, klatsch) {
+    const teile = [];
+    rhythmusLesen(code).forEach(b => b.teile.forEach(t => {
+        if (klatsch && t.p && teile.length && !teile[teile.length - 1].p) {
+            teile[teile.length - 1].d += t.d;
+            return;
+        }
+        const letzter = teile[teile.length - 1];
+        if (t.p && letzter && letzter.p) letzter.d += t.d;
+        else teile.push({ p: !!t.p, d: t.d });
+    }));
+    return teile.map(t => (t.p ? 'p' : 'n') + t.d).join(',');
+}
+function rhythmusGleich(a, b, klatsch) { return rhythmusKern(a, klatsch) === rhythmusKern(b, klatsch); }
+
+/* ---------- Taktarten ---------- */
+const TAKTARTEN = ['2/4', '3/4', '4/4', '6/8', '5/4', '3/8', '7/8'];
+
+function taktSoll(zeichen) {
+    const teile = String(zeichen || '4/4').split('/');
+    const oben = Number(teile[0]) || 4, unten = Number(teile[1]) || 4;
+    return oben * 4 / unten;
+}
+/* Achtel-Taktarten (x/8) werden in Achteln gezaehlt (6/8 -> sechs Schlaege),
+   alle anderen in Vierteln. Deckt genau die Faelle ab, die im Unterricht
+   vorkommen, ohne echte/unechte Zusammengesetztheit unterscheiden zu muessen. */
+function pulsWert(zeichen) { return /\/8$/.test(String(zeichen)) ? 0.5 : 1; }
+function taktPulse(zeichen) { return Math.round(taktSoll(zeichen) / pulsWert(zeichen)); }
+
+/* Grenzen der Zaehlzeiten im Takt (in Vierteln), ueber die kein Balken
+   laufen darf: x/4 jede Viertel, 6/8 und 9/8 nach je drei Achteln, 5/8 und
+   7/8 als 2+(2+)3 Achtel, 3/8 keine. */
+function taktGrenzen(zeichen) {
+    const soll = taktSoll(zeichen), r = [];
+    if (pulsWert(zeichen) === 1) { for (let g = 1; g < soll - 0.001; g++) r.push(g); return r; }
+    const achtel = Math.round(soll * 2);
+    if (achtel % 3 === 0) { for (let g = 1.5; g < soll - 0.001; g += 1.5) r.push(g); return r; }
+    for (let g = 1; g < soll - 1.5 + 0.001; g++) r.push(g);
+    return r;
+}
+/* Passt Baustein b an Stelle pos (Viertel ab Taktanfang)? Bausteine mit
+   Balken/Faehnchen (irgendein Teil kuerzer als eine Viertel) muessen
+   innerhalb einer Zaehlzeit bleiben - eine einzelne Achtel davor darf sie
+   nicht auf "und" schieben, sonst laeuft der Balken in die naechste
+   Zaehlzeit. Viertel, Halbe und Pausen duerfen synkopiert stehen. */
+function bausteinPasstAn(b, pos, zeichen) {
+    if (b.teile.every(t => t.d >= 1 - 0.001)) return true;
+    return !taktGrenzen(zeichen).some(g => g > pos + 0.001 && g < pos + b.dauer - 0.001);
+}
+
+/* ============================================================
+   ZEICHNEN
+   ============================================================ */
+// Platz je Notenwert. Ein Notenkopf ist ~15 breit - bei Sechzehnteln mit 17
+// klebten die Koepfe fast aneinander und das Bild wirkte gequetscht. Jetzt
+// bleibt auch zwischen Sechzehnteln gut ein halber Kopf Luft.
+const VORSCHUB = { 4: 120, 2: 78, 1: 50, 0.75: 40, 0.5: 34, 0.25: 26, [1 / 3]: 30, [1 / 6]: 24 };
+const VORSCHUB_SONST = 50;
+const LINIE_Y = 46, HALS_OBEN = 13, BALKEN_DICKE = 3.8, BALKEN_LUFT = 3.8;
+// Halsstaerke: bewusst leicht, damit das Notenbild nicht zu dick wirkt
+const HALS_DICKE = 1.7;
+// Zaehlzeiten stehen ueber den Noten (oberhalb von Haelsen, Balken und
+// Triolenziffern), der Handsatz darunter - fuer alle Zeilen auf derselben
+// Hoehe, damit sie bei "Als Uebung" genau untereinander stehen.
+// Mit Akzenten (>) rutschen die Zaehlzeiten ein Stueck hoeher, das Zeichen
+// sitzt zwischen Notenhals und Zaehlzeit.
+const ZAEHL_Y = HALS_OBEN - 22, ZAEHL_Y_AKZENT = HALS_OBEN - 34, HANDSATZ_Y = LINIE_Y + 30;
+
+function istPunktiert(d) {
+    return Math.abs(d - 0.75) < 0.001 || Math.abs(d - 1.5) < 0.001 || Math.abs(d - 3) < 0.001;
+}
+
+/* Zeichnet die Teile EINES Bausteins ab der Position x in der uebergebenen
+   Tinte. Kapselt genau die Logik aus dem alten rhythmusSvg (Haelse, Balken
+   mit Sechzehntel-Stummeln, alle Pausenformen, Punkte) - nur ohne Taktzeichen
+   und Taktstriche, die jetzt eine Ebene hoeher gezeichnet werden.
+   yVersatz hebt die ganze Zeichnung an (negativ = nach oben): Steht das
+   Fuenfliniensystem, sitzt die (hier: einzige) Stimme konventionell nicht auf
+   der Mittellinie (h1), sondern im Raum darueber (c2) - ohne Notenlinien
+   bleibt sie auf der alten Referenzlinie, yVersatz ist dann 0.
+   proViertel (optional): Abstand zeitgetreu statt nach Notenwert-Tabelle -
+   jeder Teil bekommt dauer × proViertel Pixel. Dann steht ein Einsatz auf
+   "2 und" in jeder Zeile an derselben Stelle (Uebungen untereinander). */
+function bausteinTeileZeichnen(baustein, x, tinte, yVersatz, proViertel) {
+    const Y = LINIE_Y + (yVersatz || 0), H = HALS_OBEN + (yVersatz || 0);
+    const teile = [];
+    let inkVon = Infinity, inkBis = -Infinity, inkOben = Infinity, inkUnten = -Infinity;
+    const ink = (von, bis, oben, unten) => {
+        inkVon = Math.min(inkVon, von); inkBis = Math.max(inkBis, bis);
+        if (oben !== undefined) { inkOben = Math.min(inkOben, oben); inkUnten = Math.max(inkUnten, unten); }
+    };
+    const punktSetzen = (dx) => {
+        teile.push(`<circle cx="${dx}" cy="${Y - 5}" r="2.9" fill="${tinte}"/>`);
+        ink(dx - 4, dx + 4, Y - 9, Y - 1);
+    };
+    const gruppe = [];
+    const einsaetze = [];   // x und Dauer je Teil - fuer den Handsatz darunter
+    const treffer = [];     // Tippflaeche je Note (fuer Akzente per Klick)
+    const pausenTreffer = [];   // dasselbe fuer Pausen kuerzer als eine Viertel (Zaehl-Training)
+    const gruppeAbschliessen = () => {
+        if (gruppe.length >= 2) {
+            const a = gruppe[0].hx, b = gruppe[gruppe.length - 1].hx;
+            teile.push(`<rect x="${a - HALS_DICKE / 2}" y="${H - 1}" width="${b - a + HALS_DICKE}" height="${BALKEN_DICKE}" fill="${tinte}"/>`);
+            const stummel = 9;
+            for (let i = 0; i < gruppe.length; i++) {
+                if (gruppe[i].d > 0.25) continue;
+                const nachbarRechts = i < gruppe.length - 1 && gruppe[i + 1].d <= 0.25;
+                const nachbarLinks = i > 0 && gruppe[i - 1].d <= 0.25;
+                let von, bis;
+                if (nachbarRechts) { von = gruppe[i].hx; bis = gruppe[i + 1].hx; }
+                else if (nachbarLinks) continue;
+                else if (i > 0) { von = gruppe[i].hx - stummel; bis = gruppe[i].hx; }
+                else { von = gruppe[i].hx; bis = gruppe[i].hx + stummel; }
+                teile.push(`<rect x="${von - HALS_DICKE / 2}" y="${H - 1 + BALKEN_DICKE + BALKEN_LUFT}" ` +
+                           `width="${bis - von + HALS_DICKE}" height="${BALKEN_DICKE}" fill="${tinte}"/>`);
+                ink(von - 2, bis + 2, H - 1, Y + 7);
+            }
+            if (baustein.triole) {
+                const mitte = (a + b) / 2, zahlY = H - 6;
+                teile.push(`<text x="${mitte}" y="${zahlY}" font-size="11" font-weight="800" text-anchor="middle" font-family="DM Sans, sans-serif" fill="${tinte}">${baustein.triole}</text>`);
+                ink(mitte - 6, mitte + 6, zahlY - 10, zahlY);
+            }
+        } else if (gruppe.length === 1 && gruppe[0].d <= 0.75) {
+            const hx = gruppe[0].hx;
+            teile.push(`<path d="M${hx} ${H} q 11 5 9 16 q -2 -8 -9 -9" fill="${tinte}"/>`);
+            if (gruppe[0].d <= 0.25) teile.push(`<path d="M${hx} ${H + 9} q 11 5 9 16 q -2 -8 -9 -9" fill="${tinte}"/>`);
+            ink(hx - 2, hx + 12, H - 1, Y + 7);
+        }
+        gruppe.length = 0;
+    };
+    baustein.teile.forEach((t, teilNr) => {
+        const px = x;
+        x += proViertel ? t.d * proViertel : (VORSCHUB[t.d] || VORSCHUB_SONST);
+        einsaetze.push({ px, d: t.d, pause: !!t.p });
+        if (t.p) {
+            if (t.d >= 2) {
+                // Ganze/halbe Pause haengen mittig im Platz, den sie fuellen -
+                // nicht an dessen linkem Rand wie eine Note an ihrem Einsatz.
+                const mitteX = (px + x) / 2;
+                const haengt = t.d >= 4;
+                const oben = haengt ? Y : Y - 8;
+                teile.push(`<rect x="${mitteX - 11}" y="${oben}" width="22" height="8" fill="${tinte}"/>`);
+                teile.push(`<line x1="${mitteX - 18}" y1="${Y}" x2="${mitteX + 18}" y2="${Y}" stroke="${tinte}" stroke-width="2" opacity=".8"/>`);
+                ink(mitteX - 19, mitteX + 19, Y - 10, Y + 10);
+            } else if (t.d >= 1) {
+                teile.push(`<path d="M${px - 5} ${Y - 15} L${px + 4} ${Y - 5.5}` +
+                           ` L${px - 4} ${Y + 1} L${px + 5} ${Y + 10.5}"` +
+                           ` fill="none" stroke="${tinte}" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>`);
+                teile.push(`<path d="M${px + 5} ${Y + 10.5} c -7 -3.5 -11 2 -5.5 7.5"` +
+                           ` fill="none" stroke="${tinte}" stroke-width="2.5" stroke-linecap="round"/>`);
+                ink(px - 8, px + 8, Y - 16, Y + 19);
+            } else if (t.d <= 0.25) {
+                teile.push(`<path d="M${px + 5} ${Y - 11} L${px - 4} ${Y + 12}" stroke="${tinte}" stroke-width="1.9" stroke-linecap="round" fill="none"/>` +
+                           `<circle cx="${px}" cy="${Y - 9}" r="2.9" fill="${tinte}"/>` +
+                           `<circle cx="${px - 3.5}" cy="${Y}" r="2.9" fill="${tinte}"/>`);
+                ink(px - 7, px + 7, Y - 13, Y + 13);
+            } else {
+                teile.push(`<path d="M${px + 4} ${Y - 10} L${px - 3} ${Y + 10}" stroke="${tinte}" stroke-width="1.9" stroke-linecap="round" fill="none"/>` +
+                           `<circle cx="${px - 1}" cy="${Y - 8}" r="2.9" fill="${tinte}"/>`);
+                ink(px - 5, px + 6, Y - 12, Y + 11);
+                if (istPunktiert(t.d)) punktSetzen(px + 9);
+            }
+            if (t.d < 1) pausenTreffer.push({ teil: teilNr, x0: px - 10, x1: px + 13, y0: H - 16, y1: Y + 9 });
+            gruppeAbschliessen();
+            return;
+        }
+        treffer.push({ teil: teilNr, x0: px - 10, x1: px + 13, y0: H - 16, y1: Y + 9 });
+        if (istAkzent(baustein, teilNr)) {
+            // Akzent > ueber Hals und Balken (bei Triolen ueber der Ziffer)
+            const ax = px + 3, ay = H - (baustein.triole ? 19 : 9);
+            teile.push(`<path class="akzent" d="M${ax - 5.5} ${ay - 3.6} L${ax + 5.5} ${ay} L${ax - 5.5} ${ay + 3.6}" fill="none" stroke="${tinte}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>`);
+            ink(ax - 7, ax + 7, ay - 6, ay + 6);
+        }
+        const hohl = t.d >= 2;
+        teile.push(`<ellipse cx="${px}" cy="${Y}" rx="7.2" ry="5.1" transform="rotate(-18 ${px} ${Y})"` +
+                   (hohl ? ` class="kopf-hohl" fill="none" stroke="${tinte}" stroke-width="2"/>` : ` fill="${tinte}"/>`));
+        ink(px - 9, px + 9, Y - 7, Y + 7);
+        if (istPunktiert(t.d)) punktSetzen(px + 12.5);
+        if (t.d >= 4) return;
+        // Hals: rechte Kante buendig mit dem rechten Rand des (schraegen)
+        // Kopfs (x+7), unten ein Stueck in den Kopf hinein - so geht er
+        // nahtlos ueber. Gerades Ende (butt): ein rundes ragte oben ueber den
+        // Balken. Beim hohlen Kopf endet er am Rand, nicht im Loch.
+        const hx = px + 7 - HALS_DICKE / 2;
+        ink(px - 9, hx + (t.d <= 0.75 ? 11 : 2), H - 1, Y + 7);
+        teile.push(`<line x1="${hx}" y1="${Y - (hohl ? 3 : 1)}" x2="${hx}" y2="${H}" stroke="${tinte}" stroke-width="${HALS_DICKE}" stroke-linecap="butt"/>`);
+        if (t.d <= 0.75) gruppe.push({ hx: hx, d: t.d });
+    });
+    gruppeAbschliessen();
+    return { teile, x, inkVon, inkBis, inkOben, inkUnten, einsaetze, treffer, pausenTreffer };
+}
+
+/* Handsatz (R/L) fuer die Einsaetze eines Taktes. Grundsatz: rechts, links,
+   rechts, links im Raster des Schlags - wird ein Rasterplatz ausgelassen,
+   faellt auch seine Hand weg (Achtel + 2 Sechzehntel = R R L). Das Raster
+   bestimmt jeder Viertelschlag fuer sich: das groebste, auf dem alle seine
+   Einsaetze liegen (Viertel, Achtel, Triole, Sechzehntel, Sechstole ...).
+   Daraus folgt: Schlag- und Taktanfang immer R, zwei Achtel auf der
+   Zaehlzeit R L, Achtelpause + Achtel = L.
+   Ausnahme Viertel: Stehen Viertel direkt hintereinander (Schlaege, die nur
+   aus einem Einsatz auf der Zaehlzeit bestehen, ohne Luecke dazwischen),
+   wechseln sie die Hand - R L R L. Jede solche Folge beginnt wieder mit R,
+   also auch nach einer Pause oder einer Halben.
+   Bewusst immer die Viertel als Einheit, auch in /8-Takten (deren Puls dort
+   das Achtel ist) - sonst waere in 6/8 jedes Achtel ein eigener Schlag und
+   damit R R R R R R.
+   einsaetze: [{ v (Viertel seit Taktanfang), pause }] -> ['R'|'L'|null, ...] */
+function handsatzBerechnen(einsaetze) {
+    const RASTER = [1, 0.5, 1 / 3, 0.25, 1 / 6, 0.125];
+    const passt = (wert, g) => Math.abs(wert / g - Math.round(wert / g)) < 0.01;
+    const schlaege = new Map();
+    einsaetze.forEach((e, i) => {
+        if (e.pause) return;
+        const schlag = Math.floor(e.v + 1e-6);
+        if (!schlaege.has(schlag)) schlaege.set(schlag, []);
+        schlaege.get(schlag).push(i);
+    });
+    const hand = einsaetze.map(() => null);
+    schlaege.forEach((liste, schlag) => {
+        const rel = liste.map(i => einsaetze[i].v - schlag);
+        const g = RASTER.find(r => rel.every(w => passt(w, r)));
+        liste.forEach((i, k) => {
+            // Kein Raster passt (krumme Werte): einfach abwechselnd ab R.
+            const platz = g ? Math.round(rel[k] / g) : k;
+            hand[i] = platz % 2 === 0 ? 'R' : 'L';
+        });
+    });
+    // Viertel-Folgen abwechselnd: R L R L
+    const istViertel = (schlag) => {
+        const liste = schlaege.get(schlag);
+        return liste && liste.length === 1 && passt(einsaetze[liste[0]].v - schlag, 1);
+    };
+    [...schlaege.keys()].sort((a, b) => a - b).forEach(schlag => {
+        if (!istViertel(schlag) || !istViertel(schlag - 1)) return;
+        const vorher = hand[schlaege.get(schlag - 1)[0]];
+        hand[schlaege.get(schlag)[0]] = vorher === 'R' ? 'L' : 'R';
+    });
+    return hand;
+}
+
+/* Ein einzelner Baustein, eng zugeschnitten - fuer Palette und Editor-Kaestchen. */
+function bausteinSvg(baustein, mitTreffern) {
+    const r = bausteinTeileZeichnen(baustein, 16, 'currentColor');
+    // Im Eingabefeld: jede Note antippbar (Akzent an/aus)
+    if (mitTreffern) r.treffer.forEach(f => r.teile.push(`<rect class="noten-feld" data-teil="${f.teil}" x="${f.x0}" y="${f.y0}" width="${f.x1 - f.x0}" height="${f.y1 - f.y0}" fill="transparent"/>`));
+    const von = (isFinite(r.inkVon) ? r.inkVon : 16) - 5;
+    const breite = Math.max(24, (isFinite(r.inkBis) ? r.inkBis : r.x) + 5 - von);
+    const hoeheNackt = 62;
+    const oben = (isFinite(r.inkOben) && isFinite(r.inkUnten) ? (r.inkOben + r.inkUnten) / 2 : LINIE_Y) - hoeheNackt / 2;
+    // Echte width/height-Attribute, nicht nur viewBox: ohne sie faellt eine
+    // SVG in manchen Browsern (vor allem Safari) auf eine feste Standardgroesse
+    // zurueck und ignoriert dabei die Zeichnung - sie bleibt dann unsichtbar,
+    // obwohl die Box selbst (mit Rand) ganz normal zu sehen ist.
+    return `<svg viewBox="${von} ${oben} ${breite} ${hoeheNackt}" width="${breite}" height="${hoeheNackt}" class="baustein-svg">${r.teile.join('')}</svg>`;
+}
+
+/* Position (x) fuer eine beliebige Viertel-Position innerhalb eines Taktes,
+   interpoliert anhand der tatsaechlich gezeichneten Baustein-Slots. Damit
+   lassen sich Zaehlzeiten-Ziffern unter die Note setzen, auch wenn die
+   Notenwerte nicht gleichmaessig breit sind. */
+function xBeiViertel(marken, v, taktEndeX) {
+    for (let i = 0; i < marken.length; i++) {
+        const m = marken[i];
+        const istLetzte = i === marken.length - 1;
+        if (v < m.ab + m.dauer - 1e-6 || istLetzte) {
+            const slotEnde = istLetzte ? taktEndeX : marken[i + 1].px;
+            const anteil = m.dauer > 0 ? Math.max(0, Math.min(1, (v - m.ab) / m.dauer)) : 0;
+            return m.px + anteil * (slotEnde - m.px);
+        }
+    }
+    return taktEndeX;
+}
+
+/* Der neutrale Schluessel (Perkussionsschluessel) fuer Instrumente ohne
+   Tonhoehe: zwei dicke senkrechte Balken, mittig auf das System gesetzt.
+   Kein Violinschluessel - der wuerde eine bestimmte Tonhoehe behaupten,
+   die ein Rhythmus-Takt gar nicht hat. */
+function schluesselSvg(x, mitteY, tinte) {
+    const halbHoehe = 11, breite = 3, abstand = 5;
+    return `<g>
+        <rect x="${x - abstand / 2 - breite}" y="${mitteY - halbHoehe}" width="${breite}" height="${halbHoehe * 2}" fill="${tinte}"/>
+        <rect x="${x + abstand / 2}" y="${mitteY - halbHoehe}" width="${breite}" height="${halbHoehe * 2}" fill="${tinte}"/>
+    </g>`;
+}
+
+/* ============================================================
+   Grosse, mehrzeilige Anzeige eines ganzen Stuecks - fuer den
+   Beamer. "stueck" = { zeichen, takte: [{ bausteine: [...] }] }.
+   optionen: { notenlinien, zaehlzeiten, wiederholung, breite,
+               takteProZeile, skalierung, pausenFelder }
+   pausenFelder: auch Pausen kuerzer als eine Viertel bekommen eine
+   (unsichtbare) Flaeche .pausen-feld - dort setzt das Zaehl-Training sein
+   Kaestchen hin.
+   takteProZeile (Zahl oder 0/undefined): statt so viele Takte pro Zeile
+   zu nehmen, wie in "breite" passen, immer genau so viele - fuer den
+   Druck, wo Takte untereinander stehen sollen statt ineinander zu
+   verlaufen. skalierung (Standard 1) vergroessert/verkleinert jede
+   Zeile gleichmaessig, ohne die Zeichnung neu zu rechnen.
+   Gibt HTML zurueck: ein <svg> je Notenzeile (Systemumbruch).
+   ============================================================ */
+function stueckAnzeigeHtml(stueck, optionen) {
+    const opt = Object.assign({ notenlinien: false, zaehlzeiten: false, undAlsPlus: false, wiederholung: false, wiederholungen: 1, alsUebung: false, handsatz: false, breite: 900, takteProZeile: 0, skalierung: 1, auswahl: null, startpunkt: null, pausenFelder: false }, optionen || {});
+    const tinte = 'currentColor';
+    const takte = stueck.takte || [];
+    const zaehlY = hatAkzente(stueck) ? ZAEHL_Y_AKZENT : ZAEHL_Y;
+    if (!takte.length) return '<p class="anzeige-hinweis" style="display:block">Noch kein Takt eingetragen.</p>';
+
+    const LINKS_RAND = 16;
+    const KOPF_BREITE = 48;   // Platz fuer Schluessel + Taktangabe im ersten System
+    const RAND_TAKT = 15;
+    // Mit Notenlinien steht das Anfangs-Wiederholungszeichen wie im Notensatz
+    // ueblich NACH Schluessel und Taktangabe, direkt vor der ersten Note - am
+    // Zeilenanfang laege es genau auf dem Perkussionsschluessel. Die erste Note
+    // rueckt dafuer um diese Breite nach rechts. Ohne Notenlinien gibt es
+    // keinen Schluessel, das Zeichen bleibt dann ganz vorn.
+    // "Als Uebung" + Wiederholung: jede Zeile wird fuer sich wiederholt, also
+    // nur ein Schluss-Wiederholungszeichen am Ende jeder Zeile - kein
+    // Anfangszeichen (das Ende allein heisst "ab Zeilenanfang nochmal").
+    const WDH_ANFANG = opt.wiederholung && !opt.alsUebung;
+    const WDH_NACH_KOPF = opt.notenlinien && WDH_ANFANG;
+    const WDH_BREITE = WDH_NACH_KOPF ? 30 : 0;
+
+    // Zeitgetreue Abstaende, sobald Zeilen untereinander verglichen werden
+    // (Als Uebung oder feste Takte/Zeile): Ein Sechzehntel ist dann ueberall
+    // gleich breit, ein Achtel doppelt so breit usw. - so stehen gleiche
+    // Zaehlzeiten in allen Zeilen genau untereinander. Der Massstab richtet
+    // sich nach dem engsten Notenwert im ganzen Stueck, damit auch der noch
+    // so viel Platz hat wie sonst (VORSCHUB), und gilt fuer alle Zeilen gleich.
+    let proViertel = 0;
+    if (opt.alsUebung || opt.takteProZeile > 0) {
+        proViertel = VORSCHUB[1];
+        takte.forEach(t => t.bausteine.forEach(b => b.teile.forEach(teil => {
+            if (teil.d > 0) proViertel = Math.max(proViertel, (VORSCHUB[teil.d] || VORSCHUB_SONST) / teil.d);
+        })));
+    }
+
+    function taktBreite(takt) {
+        if (proViertel) return takt.bausteine.reduce((s, b) => s + b.dauer, 0) * proViertel + RAND_TAKT;
+        return takt.bausteine.reduce((s, b) => s + b.teile.reduce((s2, t) => s2 + (VORSCHUB[t.d] || VORSCHUB_SONST), 0), 0) + RAND_TAKT;
+    }
+
+    // Takte auf Systeme (Zeilen) verteilen: entweder feste Anzahl je Zeile
+    // (Druck - Takte sollen sauber untereinander stehen) oder so viele, wie
+    // in die verfuegbare Breite passen (Bildschirm), nie mitten im Takt.
+    const systeme = [];
+    // Bei fester Taktzahl je Zeile soll Takt 1 jeder Zeile wirklich unter Takt 1
+    // der vorigen stehen, Takt 2 unter Takt 2 usw. - dafuer bekommt jede
+    // "Spalte" (Position innerhalb der Zeile) ihre eigene Breite: das Maximum
+    // aus allen Takten, die je an dieser Position stehen. Schmalere Takte
+    // bekommen dann einfach Luft nach dem letzten Zeichen, bis zum Taktstrich.
+    let spaltenBreite = null;
+    if (opt.takteProZeile > 0) {
+        spaltenBreite = new Array(opt.takteProZeile).fill(0);
+        takte.forEach((takt, i) => {
+            const spalte = i % opt.takteProZeile;
+            spaltenBreite[spalte] = Math.max(spaltenBreite[spalte], taktBreite(takt));
+        });
+        for (let i = 0; i < takte.length; i += opt.takteProZeile) {
+            systeme.push(takte.slice(i, i + opt.takteProZeile).map((takt, j) => ({ takt, index: i + j })));
+        }
+    } else {
+        let aktuell = [], breite = 0;
+        takte.forEach((takt, i) => {
+            const kopfPlatz = systeme.length === 0 && aktuell.length === 0 ? KOPF_BREITE + WDH_BREITE : 0;
+            const b = taktBreite(takt);
+            if (aktuell.length && breite + b > opt.breite - LINKS_RAND) {
+                systeme.push(aktuell); aktuell = []; breite = 0;
+            }
+            aktuell.push({ takt, index: i });
+            breite += b + (aktuell.length === 1 && systeme.length === 0 ? kopfPlatz : 0);
+        });
+        if (aktuell.length) systeme.push(aktuell);
+    }
+
+    const svgListe = systeme.map((system, systemNr) => {
+        const istErstesSystem = systemNr === 0;
+        const istLetztesSystem = systemNr === systeme.length - 1;
+        // "Als Uebung": jede Zeile ist ein eigenstaendiges kleines Stueck,
+        // bekommt also wie ein richtiges System ihren eigenen Schluessel und
+        // ihre eigene Taktangabe - nicht nur die allererste Zeile.
+        const zeigtVollenKopf = opt.alsUebung || istErstesSystem;
+        // Im Spalten-Modus faengt jede Zeile an derselben Stelle an wie die
+        // erste (Platz fuer Schluessel/Taktangabe bleibt reserviert, auch wenn
+        // dort nichts gezeichnet wird) - sonst stuende Spalte 1 der zweiten
+        // Zeile nicht unter Spalte 1 der ersten.
+        const kopfReserviert = spaltenBreite ? true : zeigtVollenKopf;
+        let x = LINKS_RAND + (kopfReserviert ? KOPF_BREITE : 10);
+        const teileSvg = [];
+        // Platz fuers Wiederholungszeichen hinter dem Kopf: in der ersten Zeile
+        // ohnehin, im Spalten-Modus in JEDER Zeile (sonst stuende Spalte 1 der
+        // ersten Zeile um diese Breite weiter rechts als in allen anderen).
+        const wdhHierZeichnen = WDH_NACH_KOPF && istErstesSystem;
+        if (wdhHierZeichnen || (WDH_NACH_KOPF && spaltenBreite)) {
+            if (wdhHierZeichnen) {
+                const duenn = x - 4, dick = x + 1;
+                teileSvg.push(`<line x1="${duenn}" y1="${LINIE_Y - 17}" x2="${duenn}" y2="${LINIE_Y + 15}" stroke="${tinte}" stroke-width="1.5"/>`);
+                teileSvg.push(`<line x1="${dick}" y1="${LINIE_Y - 17}" x2="${dick}" y2="${LINIE_Y + 15}" stroke="${tinte}" stroke-width="4"/>`);
+                teileSvg.push(`<circle cx="${dick + 7}" cy="${LINIE_Y - 4}" r="2.2" fill="${tinte}"/>`);
+                teileSvg.push(`<circle cx="${dick + 7}" cy="${LINIE_Y + 4}" r="2.2" fill="${tinte}"/>`);
+            }
+            x += WDH_BREITE;
+        }
+        let inkVon = Infinity, inkBis = -Infinity, inkOben = Infinity, inkUnten = -Infinity;
+        const merge = (r) => {
+            if (!isFinite(r.inkVon)) return;
+            inkVon = Math.min(inkVon, r.inkVon); inkBis = Math.max(inkBis, r.inkBis);
+            inkOben = Math.min(inkOben, r.inkOben); inkUnten = Math.max(inkUnten, r.inkUnten);
+        };
+
+        // Fester kleiner Rand, unabhaengig vom Kopf-Platz fuer Schluessel/Taktangabe -
+        // sonst schneidet der Zuschnitt am Ende genau diesen Kopf wieder weg.
+        const linksAnschlag = LINKS_RAND - 4;
+        inkVon = Math.min(inkVon, linksAnschlag);
+        if (zeigtVollenKopf) {
+            if (opt.notenlinien) {
+                teileSvg.push(schluesselSvg(LINKS_RAND + 7, LINIE_Y, tinte));
+                inkOben = Math.min(inkOben, LINIE_Y - 13); inkUnten = Math.max(inkUnten, LINIE_Y + 13);
+            }
+            if (istErstesSystem && WDH_ANFANG && !WDH_NACH_KOPF) {
+                // Ein Wiederholungszeichen ist zweistrichig: duenn, dann dick,
+                // erst danach die Punkte - vorher stand hier nur ein einzelner
+                // dicker Strich, das sah nicht nach dem bekannten Zeichen aus.
+                const duenn = linksAnschlag - 5, dick = linksAnschlag;
+                teileSvg.push(`<line x1="${duenn}" y1="${LINIE_Y - 17}" x2="${duenn}" y2="${LINIE_Y + 15}" stroke="${tinte}" stroke-width="1.5"/>`);
+                teileSvg.push(`<line x1="${dick}" y1="${LINIE_Y - 17}" x2="${dick}" y2="${LINIE_Y + 15}" stroke="${tinte}" stroke-width="4"/>`);
+                teileSvg.push(`<circle cx="${dick + 7}" cy="${LINIE_Y - 6}" r="2.2" fill="${tinte}"/>`);
+                teileSvg.push(`<circle cx="${dick + 7}" cy="${LINIE_Y + 6}" r="2.2" fill="${tinte}"/>`);
+                inkVon = Math.min(inkVon, duenn - 3);
+            } else if (opt.alsUebung) {
+                // Jede Zeile ist ein eigenes kleines Stueck - genauso zweistrichig
+                // wie ein echtes Wiederholungszeichen, nur ohne die Punkte, die
+                // "hier geht's zurueck" bedeuten wuerden (tut es ja nicht).
+                const duenn = linksAnschlag - 5, dick = linksAnschlag;
+                teileSvg.push(`<line x1="${duenn}" y1="${LINIE_Y - 17}" x2="${duenn}" y2="${LINIE_Y + 15}" stroke="${tinte}" stroke-width="1.5"/>`);
+                teileSvg.push(`<line x1="${dick}" y1="${LINIE_Y - 17}" x2="${dick}" y2="${LINIE_Y + 15}" stroke="${tinte}" stroke-width="4"/>`);
+                inkVon = Math.min(inkVon, duenn - 3);
+            }
+            const [oben, unten] = String(stueck.zeichen || '4/4').split('/');
+            const tx = LINKS_RAND + KOPF_BREITE - 20;
+            teileSvg.push(`<text class="kopf" x="${tx}" y="${LINIE_Y - 8}" font-size="19" font-weight="900"` +
+                          ` text-anchor="middle" dominant-baseline="middle" font-family="DM Sans, sans-serif">${oben}</text>`);
+            teileSvg.push(`<text class="kopf" x="${tx}" y="${LINIE_Y + 10}" font-size="19" font-weight="900"` +
+                          ` text-anchor="middle" dominant-baseline="middle" font-family="DM Sans, sans-serif">${unten || ''}</text>`);
+            if (opt.alsUebung) {
+                // Uebungsnummer oben links ueber der Zeile.
+                const nx = LINKS_RAND - 2, ny = LINIE_Y - (opt.notenlinien ? 34 : 26);
+                // Antippen der Nummer waehlt die ganze Uebung als Loop-Bereich
+                const vonTakt = system[0].index, bisTakt = system[system.length - 1].index;
+                teileSvg.push(`<text class="uebung-nr" data-von="${vonTakt}" data-bis="${bisTakt}" x="${nx}" y="${ny}" font-size="13" font-weight="800" text-anchor="start" font-family="DM Sans, sans-serif" fill="${tinte}">${systemNr + 1}.</text>`);
+                inkOben = Math.min(inkOben, ny - 11);
+                inkVon = Math.min(inkVon, nx - 2);
+            }
+        }
+
+        const zaehlzeitenTexte = [];
+        const taktFelder = [];   // Flaeche je Takt: zum Antippen (Loop-Bereich) und Markieren
+        let startSvg = '';       // Startpunkt-Markierung, falls sie in dieser Zeile steht
+        const notenFelder = [];  // Flaeche je Note: Antippen = Akzent an/aus (liegt ueber den Taktflaechen)
+        system.forEach(({ takt, index }, posInSystem) => {
+            // Taktstrich zwischen den Takten - am Zeilenanfang steht stattdessen
+            // der Anfangsstrich (siehe unten), in jeder Zeile an derselben Stelle.
+            if (posInSystem > 0) {
+                teileSvg.push(`<line x1="${x}" y1="${LINIE_Y - 17}" x2="${x}" y2="${LINIE_Y + 15}" stroke="${tinte}" stroke-width="2"/>`);
+                inkVon = Math.min(inkVon, x - 2); inkBis = Math.max(inkBis, x + 2);
+                x += 13;
+            }
+            const taktStartX = x;
+            const marken = [];
+            let gelaufen = 0;
+            const taktEinsaetze = [];
+            // Steht das Liniensystem, sitzt die Snare Drum konventionell im
+            // Raum ueber der Mittellinie (c2), nicht auf ihr (h1) - ohne
+            // Notenlinien bleibt die alte Referenzlinie unveraendert.
+            const notenVersatz = opt.notenlinien ? -4 : 0;
+            takt.bausteine.forEach((b, bausteinNr) => {
+                marken.push({ ab: gelaufen, px: x, dauer: b.dauer });
+                const globalAb = index * taktSoll(stueck.zeichen) + gelaufen;
+                const r = bausteinTeileZeichnen(b, x, tinte, notenVersatz, proViertel);
+                teileSvg.push(`<g data-ab="${globalAb}" data-bis="${globalAb + b.dauer}">${r.teile.join('')}</g>`);
+                merge(r);
+                r.treffer.forEach(f => notenFelder.push(`<rect class="noten-feld" data-takt="${index}" data-baustein="${bausteinNr}" data-teil="${f.teil}" x="${f.x0}" y="${f.y0}" width="${f.x1 - f.x0}" height="${f.y1 - f.y0}" fill="transparent"/>`));
+                if (opt.pausenFelder) r.pausenTreffer.forEach(f => notenFelder.push(`<rect class="pausen-feld" data-takt="${index}" data-baustein="${bausteinNr}" data-teil="${f.teil}" x="${f.x0}" y="${f.y0}" width="${f.x1 - f.x0}" height="${f.y1 - f.y0}" fill="transparent"/>`));
+                let v = gelaufen;
+                r.einsaetze.forEach(e => { taktEinsaetze.push({ v, px: e.px, pause: e.pause }); v += e.d; });
+                x = r.x;
+                gelaufen += b.dauer;
+            });
+            const taktEndeX = x;
+            // Startpunkt ({takt, ab}): Strich mit Faehnchen kurz vor der Note,
+            // bei der das Abspielen beginnt - nur Bildschirm, wie die Auswahl.
+            const sp = opt.startpunkt;
+            if (sp && sp.takt === index) {
+                const einsatz = taktEinsaetze.find(e => Math.abs(e.v - sp.ab) < 1e-6);
+                const sx = (einsatz ? einsatz.px : xBeiViertel(marken, sp.ab, taktEndeX)) - 11;
+                startSvg = `<g class="startpunkt"><line x1="${sx}" y1="${LINIE_Y - 30}" x2="${sx}" y2="${LINIE_Y + 24}" stroke-width="2.5"/>` +
+                    `<path d="M${sx} ${LINIE_Y - 33} l9 5 l-9 5 z"/></g>`;
+            }
+
+            if (opt.zaehlzeiten) {
+                // Nicht ein fester Raster-Takt, sondern eine Silbe je tatsaechlichem
+                // Einsatz: eine Viertel bekommt nur "1", zwei Achtel "1 und", vier
+                // Sechzehntel "1 e und e" - wie im Heft gesprochen, nicht wie am
+                // Metronom gezaehlt. Einsaetze, die nicht aufs Sechzehntel-Raster
+                // fallen (z.B. innerhalb einer Triole), bleiben ohne Silbe - dafuer
+                // gibt es hier keine saubere deutsche Sprechweise.
+                const pw = pulsWert(stueck.zeichen);
+                const SILBEN = ['', 'e', opt.undAlsPlus ? '+' : 'und', 'e'];
+                const zaehlzeitText = (v, text, blass) =>
+                    `<text class="zaehlzeit" x="${xBeiViertel(marken, v, taktEndeX)}" y="${zaehlY}" font-size="12" font-weight="700"` +
+                    ` text-anchor="middle" font-family="DM Sans, sans-serif" opacity="${blass ? '.4' : '1'}">${text}</text>`;
+                let v = 0;
+                takt.bausteine.forEach(b => {
+                    b.teile.forEach(teil => {
+                        const pulsIndex = Math.floor((v + 1e-6) / pw);
+                        const rest = v - pulsIndex * pw;
+                        const raster = rest / 0.25;
+                        const aufRaster = Math.abs(raster - Math.round(raster)) < 0.02;
+                        if (aufRaster) {
+                            const stufe = Math.round(raster) % 4;
+                            const silbe = stufe === 0 ? String(pulsIndex + 1) : SILBEN[stufe];
+                            if (silbe) zaehlzeitenTexte.push(zaehlzeitText(v, silbe, stufe !== 0));
+                        }
+                        // Liegt eine Note/Pause ueber mehr als einen Puls (Halbe, Ganze),
+                        // bekommen die Pulse, auf die sie nur noch nachklingt, ihre Zahl
+                        // trotzdem - blass, damit man beim Mitzaehlen nicht die Orientierung
+                        // verliert, aber es nicht wie ein neuer Einsatz aussieht.
+                        if (aufRaster) {
+                            for (let folge = v + pw; folge < v + teil.d - 1e-6; folge += pw) {
+                                const folgeIndex = Math.round(folge / pw);
+                                zaehlzeitenTexte.push(zaehlzeitText(folge, String(folgeIndex + 1), true));
+                            }
+                        }
+                        v += teil.d;
+                    });
+                });
+                inkOben = Math.min(inkOben, zaehlY - 12);
+            }
+            if (opt.handsatz) {
+                // Immer unter den Noten (die Zaehlzeiten stehen darueber).
+                const hy = HANDSATZ_Y;
+                handsatzBerechnen(taktEinsaetze).forEach((h, i) => {
+                    if (!h) return;
+                    zaehlzeitenTexte.push(`<text class="handsatz" x="${taktEinsaetze[i].px}" y="${hy}" font-size="12" font-weight="800"` +
+                        ` text-anchor="middle" font-family="DM Sans, sans-serif" fill="${tinte}">${h}</text>`);
+                });
+                inkUnten = Math.max(inkUnten, hy + 6);
+            }
+            // Im Spalten-Modus bis zur vollen Spaltenbreite auffuellen (Luft
+            // nach den Noten, vor dem naechsten Taktstrich) - damit Takt 1
+            // jeder Zeile exakt gleich breit ist wie Takt 1 jeder anderen.
+            x = spaltenBreite ? taktStartX + spaltenBreite[index % opt.takteProZeile] - RAND_TAKT : taktEndeX;
+            taktFelder.push({ index, von: taktStartX - 10, bis: x + 5 });
+        });
+        teileSvg.push(...zaehlzeitenTexte);
+        // Loop-Bereich farbig hinterlegen (hinter den Noten), dazu unsichtbare
+        // Tippflaechen je Takt obendrauf. Nur auf dem Bildschirm - der Druck
+        // bekommt keine Auswahl mit.
+        const feldOben = LINIE_Y - 34, feldHoehe = 72;
+        const aus = opt.auswahl;
+        taktFelder.forEach(f => {
+            if (aus && f.index >= aus.von && f.index <= aus.bis) {
+                teileSvg.unshift(`<rect class="takt-auswahl" x="${f.von}" y="${feldOben}" width="${f.bis - f.von}" height="${feldHoehe}" rx="6"/>`);
+            }
+            teileSvg.push(`<rect class="takt-feld" data-takt="${f.index}" x="${f.von}" y="${feldOben}" width="${f.bis - f.von}" height="${feldHoehe}" fill="transparent"/>`);
+        });
+        teileSvg.push(...notenFelder);
+        if (startSvg) teileSvg.push(startSvg);
+
+        // Anfangsstrich: jede Zeile beginnt mit einem Strich ueber das System -
+        // ausser dort, wo schon ein Doppelstrich bzw. Wiederholungszeichen steht.
+        const hatAnfangszeichen = zeigtVollenKopf && (opt.alsUebung || (istErstesSystem && WDH_ANFANG && !WDH_NACH_KOPF));
+        if (!hatAnfangszeichen) {
+            teileSvg.push(`<line x1="${linksAnschlag}" y1="${LINIE_Y - 17}" x2="${linksAnschlag}" y2="${LINIE_Y + 15}" stroke="${tinte}" stroke-width="2"/>`);
+        }
+
+        const rechts = x + 6;
+        if ((istLetztesSystem || opt.alsUebung) && opt.wiederholung) {
+            // Spiegelbildlich zum Anfang: Punkte, dann dick, dann duenn - ersetzt
+            // den normalen Taktschluss-Strich, statt zusaetzlich daneben zu stehen.
+            const dick = rechts, duenn = rechts + 5;
+            teileSvg.push(`<circle cx="${dick - 7}" cy="${LINIE_Y - 6}" r="2.2" fill="${tinte}"/>`);
+            teileSvg.push(`<circle cx="${dick - 7}" cy="${LINIE_Y + 6}" r="2.2" fill="${tinte}"/>`);
+            teileSvg.push(`<line x1="${dick}" y1="${LINIE_Y - 17}" x2="${dick}" y2="${LINIE_Y + 15}" stroke="${tinte}" stroke-width="4"/>`);
+            teileSvg.push(`<line x1="${duenn}" y1="${LINIE_Y - 17}" x2="${duenn}" y2="${LINIE_Y + 15}" stroke="${tinte}" stroke-width="1.5"/>`);
+            inkBis = Math.max(inkBis, duenn + 3);
+            // Das Zeichen allein heisst "noch einmal" (zweimal insgesamt) - erst
+            // bei mehr Durchgaengen steht die Zahl ausgeschrieben dabei.
+            const male = Math.max(1, Number(opt.wiederholungen) || 1) + 1;
+            if (male > 2) {
+                teileSvg.push(`<text x="${duenn + 4}" y="${LINIE_Y - 20}" font-size="12" font-weight="800" text-anchor="start" font-family="DM Sans, sans-serif" fill="${tinte}">${male}×</text>`);
+                inkOben = Math.min(inkOben, LINIE_Y - 32);
+                inkBis = Math.max(inkBis, duenn + 4 + String(male).length * 9 + 10);
+            }
+        } else if (opt.alsUebung) {
+            // Schlussstrich-Paar (duenn, dann dick) statt des einfachen Strichs -
+            // jede Zeile endet wie ein eigenes kleines Stueck, nicht nur eine
+            // Zwischenstation im groesseren Ganzen.
+            const duenn = rechts, dick = rechts + 5;
+            teileSvg.push(`<line x1="${duenn}" y1="${LINIE_Y - 17}" x2="${duenn}" y2="${LINIE_Y + 15}" stroke="${tinte}" stroke-width="1.5"/>`);
+            teileSvg.push(`<line x1="${dick}" y1="${LINIE_Y - 17}" x2="${dick}" y2="${LINIE_Y + 15}" stroke="${tinte}" stroke-width="4"/>`);
+            inkBis = Math.max(inkBis, dick + 3);
+        } else {
+            teileSvg.push(`<line x1="${rechts}" y1="${LINIE_Y - 17}" x2="${rechts}" y2="${LINIE_Y + 15}" stroke="${tinte}" stroke-width="${istLetztesSystem ? 3 : 2}"/>`);
+        }
+
+        if (opt.notenlinien) {
+            const linienHtml = [-16, -8, 0, 8, 16].map(dy =>
+                `<line x1="${linksAnschlag}" y1="${LINIE_Y + dy}" x2="${rechts + 8}" y2="${LINIE_Y + dy}" class="linien-fuenf" stroke="currentColor" stroke-width="1.3"/>`
+            ).join('');
+            teileSvg.unshift(linienHtml);
+        } else {
+            teileSvg.unshift(`<line x1="${linksAnschlag}" y1="${LINIE_Y}" x2="${rechts + 8}" y2="${LINIE_Y}" stroke="${tinte}" stroke-width="1.5" opacity=".45"/>`);
+        }
+
+        if (!isFinite(inkVon)) { inkVon = linksAnschlag; inkBis = rechts; }
+        if (!isFinite(inkOben)) { inkOben = HALS_OBEN; inkUnten = LINIE_Y + 7; }
+        const vonX = Math.min(inkVon, linksAnschlag) - 6;
+        // Nicht blind "rechts+20" - die "x-mal wiederholen"-Beschriftung am
+        // Wiederholungszeichen reicht teils weiter nach rechts als das.
+        const breiteSvg = Math.max(rechts + 20, inkBis + 10) - vonX;
+        const obenGrenze = opt.notenlinien ? LINIE_Y - 30 : LINIE_Y - 18;
+        const oben = Math.min(inkOben, obenGrenze) - 4;
+        const unten = Math.max(inkUnten, LINIE_Y + 20) + 4;
+        const hoeheSvg = unten - oben;
+        // Anzeigegroesse per CSS skaliert, nicht die Zeichnung selbst neu
+        // gerechnet - die viewBox bleibt die "echte" Groesse, nur die
+        // dargestellte Breite UND Hoehe wandern mit dem Groesse-Regler.
+        // Beide zusammen, nicht nur die Breite: SVGs erhalten per Default ihr
+        // Seitenverhaeltnis (preserveAspectRatio), eine SVG mit skalierter
+        // Breite aber unveraenderter Hoehe-Angabe wird deshalb nur auf den
+        // KLEINEREN der beiden Faktoren vergroessert (also gar nicht, wenn
+        // die Hoehe stehen bleibt) - der Ueberschuss verschwindet als reiner
+        // Leerraum rechts, die Noten selbst bleiben gleich gross. Genau das
+        // war der Grund, warum der Regler bisher nur die Zeilenaufteilung
+        // veraendert hat, nicht die Notengroesse.
+        const zielBreite = Math.round(breiteSvg * opt.skalierung);
+        const zielHoehe = Math.round(hoeheSvg * opt.skalierung);
+        // Kein max-width:100% hier (auch nicht inline) - bei fester Takte-pro-
+        // Zeile-Zahl haengt die natuerliche Breite nicht von der verfuegbaren
+        // Breite ab, ein Deckel wuerde den Groesse-Regler irgendwann kappen.
+        return `<svg class="anzeige-system" data-takte="${system.length}" viewBox="${vonX} ${oben} ${breiteSvg} ${hoeheSvg}" width="${Math.round(breiteSvg)}" height="${Math.round(hoeheSvg)}" style="width:${zielBreite}px; height:${zielHoehe}px">${teileSvg.join('')}</svg>`;
+    });
+
+    return svgListe.join('');
+}
+
+/* Findet in einem gerade gezeichneten Stueck die Note/Pause an der globalen
+   Position (Takt-Index, Viertel seit Taktanfang) und hebt sie hervor - fuer
+   das Mitlesen waehrend Vorklatschen/Mitklatschen. null blendet aus. */
+function stueckMarkieren(host, zeichen, taktIndex, viertelInTakt) {
+    if (!host) return;
+    host.querySelectorAll('[data-ab].jetzt').forEach(g => g.classList.remove('jetzt'));
+    if (taktIndex === null || taktIndex === undefined || taktIndex < 0) return;
+    const global = taktIndex * taktSoll(zeichen) + viertelInTakt;
+    const gruppen = host.querySelectorAll('[data-ab]');
+    for (const g of gruppen) {
+        const ab = Number(g.dataset.ab), bis = Number(g.dataset.bis);
+        if (global >= ab - 0.001 && global < bis - 0.001) { g.classList.add('jetzt'); break; }
+    }
+}

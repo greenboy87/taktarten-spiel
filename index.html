@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta http-equiv="Cache-Control" content="no-cache, must-revalidate">
+<title>Taktarten-Challenge</title>
+<meta name="description" content="Klassenspiel zu den Taktarten: Taktart hören, Taktstriche setzen, Taktart eintragen, fehlende Noten – mit QR-Code und Punkten.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@700&family=DM+Sans:wght@400;500;700;900&family=Russo+One&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="css/spiel.css?v=2">
+</head>
+<body>
+
+<header class="kopf">
+    <span class="logo">🎼 <b>Taktarten</b>-Challenge</span>
+    <span class="kopf-info" id="kopf-info"></span>
+    <span class="fuellt"></span>
+    <span class="verbindung" id="verbindung" title="Verbindung"></span>
+</header>
+
+<!-- =================== LEHRKRAFT (Beamer) =================== -->
+<main id="lehrer" class="hidden">
+
+    <section class="karte start" id="l-start">
+        <h1 class="titel">Taktarten-Challenge</h1>
+        <div class="modus-wahl" role="group" aria-label="Spielart">
+            <button type="button" class="btn" data-modus="alle"><i class="fa-solid fa-layer-group"></i> Ganze Challenge</button>
+            <button type="button" class="btn" data-modus="einzeln"><i class="fa-solid fa-bullseye"></i> Nur ein Teil</button>
+        </div>
+        <p class="hinweis" id="l-modus-info"></p>
+        <div class="bloecke" id="l-bloecke"></div>
+
+        <div class="songwahl">
+            <b><i class="fa-solid fa-sliders"></i> Umfang</b>
+            <span class="stufen">
+                <span class="stufen-name" id="l-zahl-name">Runden</span>
+                <button type="button" class="btn" data-zahl="-1" aria-label="Weniger">−</button>
+                <span class="stufen-wert" id="l-zahl-wert"></span>
+                <button type="button" class="btn" data-zahl="1" aria-label="Mehr">+</button>
+            </span>
+            <span class="hinweis klein" id="l-zahl-info"></span>
+        </div>
+
+        <div class="hb-feld">
+            <div class="leiste">
+                <b><i class="fa-solid fa-music"></i> Hörbeispiele für das Hörquiz</b>
+                <span class="fuellt"></span>
+                <label class="btn"><i class="fa-solid fa-folder-open"></i> MP3s wählen
+                    <input type="file" id="l-hb-datei" accept="audio/*,.mp3" multiple hidden></label>
+            </div>
+            <div id="l-hb-liste" class="hb-liste"></div>
+            <p class="hinweis klein">Einmal alle Dateien aus dem Stundenordner wählen (Ordner „Hörbeispiele“ – einfach alle markieren). Das Spiel ordnet sie über den Dateinamen zu; die Tanz-Songs werden übersprungen. Sie bleiben nur in diesem Browser gespeichert und werden nirgends hochgeladen. Ohne Datei spielst du den Song über die Folie ab. Häkchen = kommt im Spiel vor.</p>
+
+            <div class="leiste" style="margin-top:1rem;">
+                <b><i class="fa-solid fa-plus"></i> Eigene Songs</b>
+                <span class="fuellt"></span>
+                <label class="btn"><i class="fa-solid fa-file-audio"></i> Song hinzufügen
+                    <input type="file" id="l-eigene-datei" accept="audio/*,.mp3,.m4a,.wav" multiple hidden></label>
+            </div>
+            <div id="l-eigene-liste" class="eigene-liste"></div>
+            <p class="hinweis klein">Titel und Taktart eintragen. Steht die Taktart im Dateinamen („… 3-4.mp3“), wird sie übernommen. Lange Songs starten bei 0:30. Alles bleibt nur in diesem Browser.</p>
+        </div>
+
+        <details class="regeln" open>
+            <summary><i class="fa-solid fa-trophy"></i> So gibt es Punkte</summary>
+            <div id="l-regeln"></div>
+        </details>
+
+        <div class="leiste" style="margin-top:1.2rem;">
+            <button type="button" class="btn btn-gross btn-primaer" id="l-oeffnen-btn"><i class="fa-solid fa-door-open"></i> Raum öffnen</button>
+            <button type="button" class="btn hidden" id="l-weiter-raum-btn"><i class="fa-solid fa-rotate-right"></i> Letzten Raum weiterführen</button>
+        </div>
+    </section>
+
+    <section class="hidden" id="l-raum">
+        <div class="raumleiste">
+            <span class="raumcode">Raum <b id="l-code"></b></span>
+            <span class="kopf-info" id="l-phase-info"></span>
+            <span class="fuellt"></span>
+            <span class="timer hidden" id="l-timer"></span>
+            <button type="button" class="btn" id="l-spieler-btn" title="Mitspieler verwalten, z. B. ohne Verbindung entfernen (Taste M)"><i class="fa-solid fa-users"></i> <span id="l-spieler-zahl">0</span><span class="weg-zahl hidden" id="l-weg-zahl"></span></button>
+            <button type="button" class="btn" id="l-qr-btn" title="QR-Code zeigen (für Nachzügler)"><i class="fa-solid fa-qrcode"></i></button>
+            <button type="button" class="btn" id="l-voll-btn" title="Vollbild (Taste F)"><i class="fa-solid fa-expand"></i></button>
+            <button type="button" class="btn" id="l-plan-btn" title="Zu einer anderen Runde springen"><i class="fa-solid fa-list-ol"></i></button>
+            <button type="button" class="btn" id="l-schliessen-btn" title="Raum schließen"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <!-- Lobby -->
+        <div class="karte" id="l-lobby">
+            <div class="lobby">
+                <div class="qr-feld">
+                    <div id="l-qr"></div>
+                    <div class="url" id="l-url"></div>
+                </div>
+                <div class="lobby-rechts">
+                    <p class="gross">QR-Code scannen, Namen eingeben – los geht’s!</p>
+                    <p class="hinweis" id="l-anzahl"></p>
+                    <div class="namen" id="l-namen"></div>
+                    <div class="leiste" style="margin-top:1.2rem;">
+                        <button type="button" class="btn btn-gross btn-primaer" id="l-start-btn"><i class="fa-solid fa-play"></i> Spiel starten</button>
+                        <span class="hinweis klein">Antippen eines Namens entfernt ihn.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Zwischentitel vor jedem Teil -->
+        <div class="karte hidden" id="l-teil">
+            <div class="teil-titel" id="l-teil-inhalt"></div>
+            <div class="leiste mitte" style="margin-top:1.5rem;">
+                <button type="button" class="btn btn-gross btn-primaer" id="l-teil-los"><i class="fa-solid fa-play"></i> Los geht’s</button>
+            </div>
+        </div>
+
+        <!-- Laufende Runde -->
+        <div class="karte hidden" id="l-runde">
+            <div id="l-runde-inhalt"></div>
+            <div class="abgabe">
+                <div class="balken"><div id="l-abgabe-balken"></div></div>
+                <span id="l-abgabe-text"></span>
+            </div>
+            <div class="namen klein" id="l-abgabe-namen"></div>
+            <div class="leiste" style="margin-top:1rem;">
+                <span id="l-runde-knoepfe" class="leiste"></span>
+                <span class="fuellt"></span>
+                <button type="button" class="btn schalter" id="l-auto-btn" title="An: Sobald alle abgegeben haben, kommt das Ergebnis von selbst. Aus: Du drückst selbst auf „Ergebnis anzeigen“."></button>
+                <button type="button" class="btn btn-warnung" id="l-beenden-btn"><i class="fa-solid fa-flag-checkered"></i> Ergebnis anzeigen</button>
+            </div>
+        </div>
+
+        <!-- Aufloesung -->
+        <div class="karte hidden" id="l-aufl">
+            <div id="l-loesung"></div>
+            <div class="zwei">
+                <div><h3 class="untertitel">Diese Runde</h3><div id="l-rundenliste"></div></div>
+                <div><h3 class="untertitel">Gesamt</h3><div id="l-gesamtliste"></div></div>
+            </div>
+            <div class="leiste" style="margin-top:1rem;">
+                <span id="l-aufl-knoepfe" class="leiste"></span>
+                <span class="fuellt"></span>
+                <button type="button" class="btn btn-gross btn-primaer" id="l-weiter-btn"></button>
+            </div>
+        </div>
+
+        <!-- Ende -->
+        <div class="karte hidden" id="l-ende">
+            <h2 class="titel mitte">🏆 Endstand</h2>
+            <div class="podest" id="l-podest"></div>
+            <div id="l-endliste"></div>
+            <div class="leiste" style="margin-top:1rem;">
+                <span class="fuellt"></span>
+                <button type="button" class="btn" id="l-nochmal-btn"><i class="fa-solid fa-rotate-right"></i> Noch ein Spiel (gleiche Klasse)</button>
+            </div>
+        </div>
+
+        <details class="einstellungen" id="l-songs-panel">
+            <summary><i class="fa-solid fa-music"></i> Songs im Spiel <span class="hinweis klein" id="l-songs-kurz"></span></summary>
+            <div id="l-songs-im-spiel"></div>
+        </details>
+        <details class="einstellungen">
+            <summary><i class="fa-solid fa-sliders"></i> Zeit je Runde · erst zuhören</summary>
+            <div class="leiste" id="l-zeiten"></div>
+        </details>
+    </section>
+
+    <dialog id="l-qr-dialog" class="dialog">
+        <div id="l-qr-gross"></div>
+        <p class="url" id="l-url-gross"></p>
+        <button type="button" class="btn" data-schliessen>Schließen</button>
+    </dialog>
+    <dialog id="l-spieler-dialog" class="dialog">
+        <h3 class="untertitel">Mitspieler</h3>
+        <p class="hinweis klein" style="margin:0 0 .6rem;">Rot = keine Verbindung mehr. Entfernte Kinder fliegen aus dem Raum; ihre Antworten zählen nicht mehr, und die Runde wartet nicht auf sie. Mit gleichem Gerät können sie neu beitreten.</p>
+        <div class="leiste" style="margin-bottom:.6rem;">
+            <button type="button" class="btn" id="l-wahl-alle">Alle</button>
+            <button type="button" class="btn" id="l-wahl-weg"><i class="fa-solid fa-plug-circle-xmark"></i> Ohne Verbindung</button>
+            <button type="button" class="btn" id="l-wahl-keine">Keine</button>
+        </div>
+        <div id="l-spieler-liste" class="spieler-liste"></div>
+        <div class="leiste" style="margin-top:1rem; justify-content:space-between;">
+            <button type="button" class="btn" data-schliessen>Schließen</button>
+            <button type="button" class="btn btn-warnung" id="l-raus-btn" disabled><i class="fa-solid fa-user-xmark"></i> Ausgewählte entfernen</button>
+        </div>
+    </dialog>
+    <dialog id="l-plan-dialog" class="dialog">
+        <h3 class="untertitel">Zu Runde springen</h3>
+        <div id="l-plan-liste" class="plan-liste"></div>
+        <button type="button" class="btn" data-schliessen>Schließen</button>
+    </dialog>
+</main>
+
+<!-- =================== SCHUELER (Handy/iPad) =================== -->
+<main id="schueler" class="hidden">
+    <section class="karte s-mitte" id="s-beitritt">
+        <h2 class="titel">Raum <span id="s-code"></span></h2>
+        <div id="s-code-feld" class="hidden">
+            <input type="text" id="s-code-eingabe" class="eingabe" maxlength="5" placeholder="Raumcode" autocomplete="off" autocapitalize="characters">
+        </div>
+        <p class="hinweis">Wie heißt du?</p>
+        <input type="text" id="s-name" class="eingabe" maxlength="12" placeholder="Dein Name" autocomplete="off" autocapitalize="words" enterkeyhint="go">
+        <div class="emojis" id="s-emojis"></div>
+        <button type="button" class="btn btn-gross btn-primaer" id="s-los-btn"><i class="fa-solid fa-right-to-bracket"></i> Mitspielen</button>
+    </section>
+
+    <section class="hidden" id="s-spiel">
+        <div class="s-stand" id="s-stand"></div>
+        <div class="karte s-mitte" id="s-inhalt"></div>
+    </section>
+</main>
+
+<div id="toast-bereich"></div>
+
+<script src="js/qrcode.min.js?v=2"></script>
+<script src="js/noten.js?v=2"></script>
+<script type="module" src="js/spiel.js?v=2"></script>
+</body>
+</html>
