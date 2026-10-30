@@ -4,6 +4,9 @@
    Aufbau wie die Metrum-Challenge (metrum-spiel), sieben Teile:
      hoer    Hoerquiz (Folie 4-8, 14): der Beamer spielt einen Song, alle
              tippen 2/4, 3/4 oder 4/4.
+     klopf   Eins-Klopfer: zu einem neuen Song oder einem Groove links auf
+             die 1, rechts auf die anderen Zaehlzeiten klopfen - das Geraet
+             erkennt daraus die Taktart.
      klick   Klick-Detektiv: der Beamer spielt Metronom, Schlagzeug oder
              Blaskapelle mit betonter 1 - welche Taktart?
      takt    Taktart eintragen (Aufgabe 2 und 6): Takte sind da, die
@@ -29,7 +32,12 @@
      antw/<spiel>_<nr>/<id>
                      {w, t}: w = Index (hoer, klick, kobold, quiz) oder Text
                      mit Kommas (takt, luecke: Wahl je "?"; strich: Nummern
-                     der gesetzten Luecken); t = Serverzeit der Abgabe.
+                     der gesetzten Luecken; klopf: "e0,a512,a1030,e1540,..."
+                     = Eins/andere + ms ab dem ersten Tipp, hoechstens 48);
+                     t = Serverzeit der Abgabe.
+   Gedacht als Abschluss-Ueberpruefung nach dem Arbeitsblatt: Die Notenzeilen
+   sind neu (nicht vom Arbeitsblatt), die Songs der Stunde sind deshalb
+   standardmaessig aus - neue Songs kommen ueber "Eigene Songs".
    Download pro Stunde: grob 8 MB bei 28 Kindern und ~30 Runden (obere
    Grenze) - jeder liest nur 'lehrer', die Lehrkraft dazu 'spieler' und die
    Antworten der laufenden Runde.
@@ -143,18 +151,19 @@ const QUIZ = [
     { frage: 'Ein Pinguin watschelt: links – rechts – links – rechts. Welche Taktart passt am besten?', antworten: ['2/4-Takt', '3/4-Takt', '7/8-Takt', 'Pinguine haben keinen Takt.'] }
 ];
 
-const TEILE = ['hoer', 'klick', 'takt', 'strich', 'luecke', 'kobold', 'quiz'];
+const TEILE = ['hoer', 'klopf', 'klick', 'takt', 'strich', 'luecke', 'kobold', 'quiz'];
 const TEIL_INFO = {
-    hoer: { name: 'Hörquiz', icon: 'fa-headphones', folie: 'Folien 2–8', runden: 5, text: 'Hört den Song, findet die betonte 1 und zählt bis zur nächsten. Dann tippt ihr: 2/4, 3/4 oder 4/4?' },
-    klick: { name: 'Klick-Detektiv', icon: 'fa-user-secret', folie: 'eigene Idee', runden: 3, text: 'Metronom, Schlagzeug oder Blaskapelle – irgendwo versteckt sich die betonte 1. Erst zuhören, dann tippen.' },
-    takt: { name: 'Taktart eintragen', icon: 'fa-pen', folie: 'Aufgabe 2 + 6', runden: 4, text: 'Zählt die Viertel in jedem Takt. Tippt auf das „?“ und wählt die Taktart. Bei Profi-Zeilen wechselt sie!' },
-    strich: { name: 'Taktstriche setzen', icon: 'fa-grip-lines-vertical', folie: 'Aufgabe 4', runden: 4, text: 'Die Taktart steht vorne. Zählt mit und tippt zwischen die Noten, wo ein Taktstrich hingehört.' },
-    luecke: { name: 'Fehlende Note', icon: 'fa-puzzle-piece', folie: 'Aufgabe 5', runden: 4, text: 'Bei jedem „?“ fehlt eine Note. Zählt, was schon da ist – welcher Notenwert macht den Takt voll?' },
+    hoer: { name: 'Hörquiz', icon: 'fa-headphones', folie: 'neue Songs', runden: 5, text: 'Hört den Song, findet die betonte 1 und zählt bis zur nächsten. Dann tippt ihr: 2/4, 3/4 oder 4/4?' },
+    klopf: { name: 'Eins-Klopfer', icon: 'fa-hand-back-fist', folie: 'Song oder Groove', runden: 3, text: 'Klopft mit: links auf die betonte 1, rechts auf alle anderen Zählzeiten. Euer Gerät erkennt, welche Taktart ihr klopft – und wie gleichmäßig.' },
+    klick: { name: 'Klick-Detektiv', icon: 'fa-user-secret', folie: 'Metronom & Co.', runden: 3, text: 'Metronom, Schlagzeug oder Blaskapelle – irgendwo versteckt sich die betonte 1. Erst zuhören, dann tippen.' },
+    takt: { name: 'Taktart eintragen', icon: 'fa-pen', folie: 'wie Aufgabe 2 + 6', runden: 4, text: 'Zählt die Viertel in jedem Takt. Tippt auf das „?“ und wählt die Taktart. Bei Profi-Zeilen wechselt sie!' },
+    strich: { name: 'Taktstriche setzen', icon: 'fa-grip-lines-vertical', folie: 'wie Aufgabe 4', runden: 4, text: 'Die Taktart steht vorne. Zählt mit und tippt zwischen die Noten, wo ein Taktstrich hingehört.' },
+    luecke: { name: 'Fehlende Note', icon: 'fa-puzzle-piece', folie: 'wie Aufgabe 5', runden: 4, text: 'Bei jedem „?“ fehlt eine Note. Zählt, was schon da ist – welcher Notenwert macht den Takt voll?' },
     kobold: { name: 'Der Notenkobold', icon: 'fa-ghost', folie: 'Fehlersuche', runden: 3, text: 'Der Notenkobold 👺 hat einen Takt verhext – er passt nicht zur Taktart. Findet ihn und tippt ihn an!' },
     quiz: { name: 'Taktarten-Millionär', icon: 'fa-sack-dollar', folie: 'Merke', runden: 6, text: 'Fragen zum Merke-Kasten – und ein paar Quatsch-Antworten. Tippt die richtige Antwort, je schneller, desto mehr Punkte.' }
 };
-// hoeren = Sekunden, die der Song im Hoerquiz erst laeuft, bevor die Kinder tippen koennen
-const ZEIT_STANDARD = { hoer: 30, klick: 20, takt: 45, strich: 60, luecke: 45, kobold: 40, quiz: 20, hoeren: 10 };
+// hoeren = Sekunden, die der Song im Hoerquiz und beim Eins-Klopfer erst laeuft, bevor die Kinder tippen koennen
+const ZEIT_STANDARD = { hoer: 30, klopf: 40, klick: 20, takt: 45, strich: 60, luecke: 45, kobold: 40, quiz: 20, hoeren: 10 };
 
 /* ---------- Noten ---------- */
 // Punktierte Halbe fehlt in noten.js (dort kommen 3/4-Takte ohne sie aus) - der Zeichner kann sie schon
@@ -239,6 +248,26 @@ const PUNKTE_PLATZ = [50, 40, 30, 20, 10];   // Bonus fuer die ersten Abgaben ..
 const PUNKTE_BONUS_AB = 60;                    // ... mit mindestens so vielen Grundpunkten
 const fuenfer = (x) => Math.max(0, Math.min(100, Math.round(x / 5) * 5));
 const liste = (w) => String(w ?? '').split(',').filter(x => x !== '').map(Number);
+/* Eins-Klopfer: Tipps "e…" (Eins) und "a…" (andere) mit ms. Zwischen zwei
+   Einsen liegt ein Takt; so viele Tipps er hat, so viele Schlaege hat er.
+   Grundpunkte = Anteil der Takte mit der richtigen Schlagzahl x Menge (ab 3
+   Takten voll) x (60 % + 40 % Gleichmaessigkeit). Gleichmaessig: mittlere
+   Abweichung der Tipp-Abstaende vom Median bis 8 % = voll, ab 35 % = nichts. */
+function klopfBasis(ta, w) {
+    const tipps = String(w ?? '').split(',').filter(Boolean).map(x => ({ k: x[0], t: Number(x.slice(1)) }));
+    const eins = tipps.map((x, i) => (x.k === 'e' ? i : -1)).filter(i => i >= 0);
+    const takte = eins.slice(1).map((e, i) => e - eins[i]);
+    if (takte.length < 2) return { b: 0, erkannt: null, gleich: 0, takte: takte.length };
+    const zahl = {};
+    takte.forEach(n => { zahl[n] = (zahl[n] || 0) + 1; });
+    const oft = Number(Object.keys(zahl).sort((a, b) => zahl[b] - zahl[a])[0]);
+    const abst = tipps.slice(1).map((x, i) => x.t - tipps[i].t).filter(d => d > 0);
+    const m = abst.slice().sort((a, b) => a - b)[Math.floor(abst.length / 2)] || 1;
+    const abw = abst.reduce((s, d) => s + Math.abs(d - m), 0) / Math.max(1, abst.length) / m;
+    const gleich = abw <= 0.08 ? 1 : abw >= 0.35 ? 0 : (0.35 - abw) / 0.27;
+    const anteil = takte.filter(n => n === TA_SCHLAEGE[ta]).length / takte.length;
+    return { b: fuenfer(100 * anteil * Math.min(1, takte.length / 3) * (0.6 + 0.4 * gleich)), erkannt: oft >= 2 && oft <= 4 ? `${oft}/4` : `${oft} Schläge`, gleich: Math.round(gleich * 100), takte: takte.length };
+}
 function indexBasis(richtig, w) { return { b: Number(w) === richtig ? 100 : 0 }; }
 // Mehrere "?": jedes richtige zaehlt anteilig
 function mehrBasis(soll, w) {
@@ -292,7 +321,8 @@ onValue(ref(db, '.info/connected'), s => {
 /* ---------- Audio (Klick-Detektiv) ----------
    Safari bleibt stumm, solange der Kontext nicht aus einem Klick heraus
    gestartet wurde - deshalb holt jeder Knopf, der spielt, audio() zuerst. */
-let ctx = null, rauschen = null;
+let ctx = null, rauschen = null, ausgang = null;   // ausgang: Bus des laufenden Vorspiels
+const ziel = (c) => ausgang || c.destination;
 function audio() {
     if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
     if (ctx.state === 'suspended') ctx.resume();
@@ -305,7 +335,7 @@ function klick(zeit, betont) {
     g.gain.setValueAtTime(0.0001, zeit);
     g.gain.exponentialRampToValueAtTime(betont ? 0.7 : 0.3, zeit + 0.002);
     g.gain.exponentialRampToValueAtTime(0.0001, zeit + 0.06);
-    o.connect(g).connect(c.destination);
+    o.connect(g).connect(ziel(c));
     o.start(zeit); o.stop(zeit + 0.08);
 }
 function klatsch(zeit, laut = 1) {
@@ -326,7 +356,7 @@ function klatsch(zeit, laut = 1) {
     g.gain.exponentialRampToValueAtTime(0.0001, zeit + 0.2);
     const q = c.createBufferSource();
     q.buffer = rauschen;
-    q.connect(f).connect(g).connect(c.destination);
+    q.connect(f).connect(g).connect(ziel(c));
     q.start(zeit); q.stop(zeit + 0.25);
 }
 // Grosse Trommel: Sinus, der schnell nach unten rutscht
@@ -337,7 +367,7 @@ function bumm(zeit) {
     g.gain.setValueAtTime(0.0001, zeit);
     g.gain.exponentialRampToValueAtTime(1, zeit + 0.004);
     g.gain.exponentialRampToValueAtTime(0.0001, zeit + 0.35);
-    o.connect(g).connect(c.destination);
+    o.connect(g).connect(ziel(c));
     o.start(zeit); o.stop(zeit + 0.4);
 }
 // Blaskapelle: Tuba "Umm" auf der 1, Blech-"Pa" auf den anderen Schlaegen
@@ -348,7 +378,7 @@ function ton(zeit, frequenzen, typ, laut, dauer) {
     g.gain.exponentialRampToValueAtTime(laut, zeit + 0.02);
     g.gain.exponentialRampToValueAtTime(laut * 0.6, zeit + dauer * 0.6);
     g.gain.exponentialRampToValueAtTime(0.0001, zeit + dauer);
-    f.connect(g).connect(c.destination);
+    f.connect(g).connect(ziel(c));
     frequenzen.forEach(fr => {
         const o = c.createOscillator();
         o.type = typ; o.frequency.value = fr;
@@ -360,9 +390,11 @@ function ton(zeit, frequenzen, typ, laut, dauer) {
    Blinken am Beamer - alle Schlaege gleich, sonst verraet das Bild die 1.
    Gibt die Dauer in ms zurueck. */
 let vorspielTimer = [];
-function klickVorspielen(r, onSchlag) {
+function klickVorspielen(r, onSchlag, takteFest) {
     vorspielStopp();
-    const c = audio(), s = 60 / r.bpm, n = TA_SCHLAEGE[r.ta], takte = n === 2 ? 6 : 4;
+    const c = audio(), s = 60 / r.bpm, n = TA_SCHLAEGE[r.ta], takte = takteFest || (n === 2 ? 6 : 4);
+    ausgang = c.createGain();
+    ausgang.connect(c.destination);
     const t0 = c.currentTime + 0.3, gesamt = n * takte;
     for (let b = 0; b < gesamt; b++) {
         const zeit = t0 + b * s, eins = b % n === 0, takt = Math.floor(b / n);
@@ -378,7 +410,14 @@ function klickVorspielen(r, onSchlag) {
     vorspielTimer.push(setTimeout(() => onSchlag && onSchlag(-1), dauer));
     return dauer;
 }
-function vorspielStopp() { vorspielTimer.forEach(clearTimeout); vorspielTimer = []; }
+function vorspielStopp() {
+    vorspielTimer.forEach(clearTimeout); vorspielTimer = [];
+    // schon geplante Toene (Groove beim Eins-Klopfer) verstummen lassen
+    if (ausgang && ctx) { const a = ausgang; a.gain.setTargetAtTime(0, ctx.currentTime, 0.05); setTimeout(() => a.disconnect(), 400); }
+    ausgang = null;
+}
+// Groove fuer den Eins-Klopfer: so viele Takte, dass er die ganze Runde laeuft
+const grooveTakte = (r) => Math.min(96, Math.ceil((L.zeiten.hoeren + L.zeiten.klopf + 15) * r.bpm / 60 / TA_SCHLAEGE[r.ta]));
 
 /* ---------- Hoerbeispiele (nur lokal, IndexedDB) ---------- */
 function idb() {
@@ -428,7 +467,8 @@ async function hbLoeschen(key) {
     });
 }
 // Abgewaehlte Songs (Schluessel als Text), lokal gemerkt
-const hbAus = () => new Set(lesen('ta-hb-aus', []));
+// Songs der Stunde kennen die Kinder schon - fuer die Ueberpruefung standardmaessig aus
+const hbAus = () => new Set(lesen('ta-hb-aus', SONGS.map(x => String(x.hb))));
 function hbAusSetzen(key, aus) {
     const s = hbAus();
     if (aus) s.add(String(key)); else s.delete(String(key));
@@ -473,10 +513,17 @@ function songPool() {
     return fest.concat(eigene);
 }
 
-function teilRunden(teil, n) {
-    if (teil === 'hoer') {
-        const pool = songPool();
-        return mischen(pool.length).slice(0, Math.min(n, pool.length)).map(i => Object.assign({ art: 'hoer' }, pool[i]));
+function teilRunden(teil, n, ohne) {
+    if (teil === 'hoer' || teil === 'klopf') {
+        const pool = songPool().filter(x => !(ohne || new Set()).has(String(x.hb)));
+        const songs = mischen(pool.length).slice(0, Math.min(n, pool.length)).map(i => Object.assign({ art: teil }, pool[i]));
+        if (teil === 'hoer') return songs;
+        // Fehlen Songs, spielt das Spiel selbst einen Groove (Taktart, Klang, Tempo zufaellig)
+        const k = Object.keys(KLAENGE), ta = mischen(3).concat(mischen(3), mischen(3), mischen(3), mischen(3)).map(i => TA[i]);
+        for (let i = songs.length; i < Math.min(n, 15); i++) {
+            songs.push({ art: 'klopf', titel: `Groove: ${KLAENGE[k[i % k.length]]}`, ta: ta[i], klang: k[i % k.length], bpm: 84 + 4 * Math.floor(Math.random() * 10), quelle: 'Groove' });
+        }
+        return songs;
     }
     if (teil === 'klick') {
         // Jede Taktart kommt dran, Klaenge reihum, Tempo zufaellig 80-140
@@ -523,7 +570,8 @@ function planBauen() {
     const plan = [];
     an.forEach(teil => {
         const n = modus() === 'einzeln' ? einzelRunden() : teil === 'hoer' ? songZahl() : TEIL_INFO[teil].runden;
-        const runden = teilRunden(teil, n);
+        // Eins-Klopfer nimmt Songs, die nicht schon im Hoerquiz dran waren
+        const runden = teilRunden(teil, n, new Set(plan.filter(r => r.art === 'hoer').map(r => String(r.hb))));
         if (!runden.length) return;
         plan.push({ art: 'teil', teil });
         runden.forEach((r, i) => plan.push(Object.assign(r, { k: i + 1, n: runden.length })));
@@ -560,7 +608,7 @@ function lRundenwahlZeigen() {
         $('l-zahl-name').textContent = 'Songs im Hörquiz';
         $('l-zahl-wert').textContent = n >= 99 ? 'alle' : n;
         const gesamt = TEILE.filter(t => teileAn().includes(t)).reduce((s, t) => s + (t === 'hoer' ? Math.min(n, pool) : teilRunden(t, TEIL_INFO[t].runden).length), 0);
-        info = `= ${Math.min(n, pool)} von ${pool} Songs im Pool · ${gesamt} Runden insgesamt`;
+        info = `= ${Math.min(n, pool)} von ${pool} Songs im Pool · ${gesamt} Runden insgesamt` + (pool ? '' : ' – fürs Hörquiz unten neue Songs hinzufügen (sonst fällt es weg)');
     }
     $('l-zahl-info').textContent = info;
 }
@@ -568,6 +616,7 @@ function lRundenwahlZeigen() {
 function regelnHtml() {
     return `<ul class="regel-liste">
         <li><b>Hörquiz, Klick-Detektiv, Kobold, Millionär:</b> richtig = 100 Punkte.</li>
+        <li><b>Eins-Klopfer:</b> jeder Takt mit der richtigen Zahl an Schlägen zählt, gleichmäßiges Klopfen gibt den Rest (alles richtig und gleichmäßig = 100, ab 3 Takten).</li>
         <li><b>Taktart eintragen, fehlende Note:</b> jedes richtige „?“ zählt anteilig (2 von 4 richtig = 50).</li>
         <li><b>Taktstriche:</b> richtige Striche minus falsche, geteilt durch die nötigen Striche (alle richtig = 100).</li>
         <li><b>Platzbonus:</b> Die ersten fünf, die mit mindestens 60 Punkten abgeben, bekommen +50 / +40 / +30 / +20 / +10.</li>
@@ -787,7 +836,7 @@ function lAbgabeZeigen() {
 /* ---------- Ablauf ---------- */
 // Was die Kinder sehen duerfen - ohne Loesung
 function aufgabeVon(r) {
-    if (r.art === 'hoer') return { k: r.k, n: r.n };
+    if (r.art === 'hoer' || r.art === 'klopf') return { k: r.k, n: r.n };
     if (r.art === 'klick') return { klang: KLAENGE[r.klang], bpm: r.bpm };
     if (r.art === 'takt') return { b: r.b, zeig: r.zeig };
     if (r.art === 'strich') return { t: r.t, c: r.c.join('-') };
@@ -819,10 +868,11 @@ async function lGeheZu(pos) {
     L.dauer = L.zeiten[r.art];
     lAntwortenAbo();
     // Song noch im Klick starten - Safari blockt play() nach einem await
-    if (r.art === 'hoer') songStart(r.hb);
+    if ((r.art === 'hoer' || r.art === 'klopf') && r.hb) songStart(r.hb);
+    if (r.art === 'klopf' && !r.hb) klickVorspielen(r, null, grooveTakte(r));
     // Erst zuhoeren: Hoerquiz ein paar Sekunden, Klick-Detektiv bis das Vorspiel vorbei ist
     let spieltBis = null;
-    if (r.art === 'hoer' && L.zeiten.hoeren > 0) spieltBis = jetzt() + L.zeiten.hoeren * 1000;
+    if ((r.art === 'hoer' || r.art === 'klopf') && L.zeiten.hoeren > 0) spieltBis = jetzt() + L.zeiten.hoeren * 1000;
     if (r.art === 'klick') spieltBis = jetzt() + klickVorspielen(r, lSchlagZeigen);
     L.start = spieltBis || jetzt();
     await update(ref(db, pfad(L.code, 'lehrer')), {
@@ -853,6 +903,7 @@ function lSchlagZeigen(i) {
 
 function basisVon(r, w) {
     if (r.art === 'hoer' || r.art === 'klick') return indexBasis(TA.indexOf(r.ta), w);
+    if (r.art === 'klopf') return klopfBasis(r.ta, w);
     if (r.art === 'quiz') return indexBasis(r.richtig, w);
     if (r.art === 'kobold') return indexBasis(r.falsch, w);
     if (r.art === 'takt') return mehrBasis(r.zeig.map((z, i) => (z === '?' ? TA.indexOf(r.w[i]) : null)).filter(x => x !== null), w);
@@ -860,7 +911,7 @@ function basisVon(r, w) {
     return strichBasis(r.soll, w);
 }
 function loesungVon(r) {
-    if (r.art === 'hoer') return { ta: r.ta, titel: r.titel };
+    if (r.art === 'hoer' || r.art === 'klopf') return { ta: r.ta, titel: r.titel };
     if (r.art === 'klick') return { ta: r.ta };
     if (r.art === 'takt') return { w: r.w };
     if (r.art === 'strich') return { soll: r.soll.join(',') };
@@ -1000,7 +1051,7 @@ function lZeichnen() {
     if (L.phase === 'teil') {
         const t = TEIL_INFO[r.teil];
         const n = L.plan.filter(x => x.art === r.teil).length;
-        const fehlt = r.teil === 'hoer' ? L.plan.filter(x => x.art === 'hoer' && !L.hbUrl[x.hb]).length : 0;
+        const fehlt = L.plan.filter(x => x.art === r.teil && (x.art === 'hoer' || x.art === 'klopf') && x.hb && !L.hbUrl[x.hb]).length;
         $('l-phase-info').textContent = t.name;
         $('l-teil-inhalt').innerHTML = `<div class="teil-icon"><i class="fa-solid ${t.icon}"></i></div>
             <div class="teil-folie">${esc(t.folie)} · ${n} Runden</div>
@@ -1014,7 +1065,8 @@ function lZeichnen() {
         zeigen('l-runde', true);
         $('l-runde-inhalt').innerHTML = lRundeHtml(r);
         const knoepfe = [];
-        if (r.art === 'hoer') knoepfe.push(`<button type="button" class="btn" id="l-song-btn" ${L.hbUrl[r.hb] ? '' : 'disabled title="Hörbeispiel nicht geladen"'}></button>`,
+        if (r.art === 'klopf' && !r.hb) knoepfe.push('<button type="button" class="btn" id="l-groove-neu"><i class="fa-solid fa-backward-step"></i> Groove von vorn</button>');
+        if (r.art === 'hoer' || (r.art === 'klopf' && r.hb)) knoepfe.push(`<button type="button" class="btn" id="l-song-btn" ${L.hbUrl[r.hb] ? '' : 'disabled title="Hörbeispiel nicht geladen"'}></button>`,
             `<button type="button" class="btn" id="l-song-neu" ${L.hbUrl[r.hb] ? '' : 'disabled'} title="Song von vorn"><i class="fa-solid fa-backward-step"></i></button>`);
         if (r.art === 'klick') knoepfe.push('<button type="button" class="btn" id="l-vorspielen-btn"><i class="fa-solid fa-repeat"></i> Nochmal vorspielen</button>');
         $('l-runde-knoepfe').innerHTML = knoepfe.join('');
@@ -1043,7 +1095,7 @@ function lZeichnen() {
             : naechste.art === 'teil' ? `<i class="fa-solid fa-forward"></i> Weiter: ${esc(TEIL_INFO[naechste.teil].name)}`
                 : '<i class="fa-solid fa-forward"></i> Nächste Runde';
         $('l-aufl-knoepfe').innerHTML = r.art === 'klick' ? '<button type="button" class="btn" id="l-aufl-hoeren"><i class="fa-solid fa-volume-high"></i> Nochmal hören</button>'
-            : r.art === 'hoer' && L.hbUrl[r.hb] ? '<button type="button" class="btn" id="l-song-btn"></button>' : '';
+            : (r.art === 'hoer' || r.art === 'klopf') && L.hbUrl[r.hb] ? '<button type="button" class="btn" id="l-song-btn"></button>' : '';
         lSongKnopf();
     }
 }
@@ -1061,6 +1113,13 @@ function lRundeHtml(r) {
             <div class="buehne-titel"><i class="fa-solid fa-headphones"></i> Welche Taktart hörst du?</div>
             <div class="puls"><span></span></div>
             <div class="ta-tafel">${TA.map((t, k) => `<span>${t}<small>${TA_ZAEHLEN[k]}</small></span>`).join('')}</div>
+            <p class="buehne-text" id="l-hoer-text"></p>
+        </div>`;
+    }
+    if (r.art === 'klopf') {
+        return `<div class="buehne">${kopf}
+            <div class="buehne-titel"><i class="fa-solid fa-hand-back-fist"></i> Klopft mit!</div>
+            <div class="klopf-tafel"><span class="eins">1<small>links</small></span><span class="rest">2 3 4<small>rechts</small></span></div>
             <p class="buehne-text" id="l-hoer-text"></p>
         </div>`;
     }
@@ -1094,11 +1153,11 @@ function verteilung(optionen, zeilen, richtig) {
 function lAufloesungZeigen(r) {
     const { zeilen = [] } = L.letzte || {};
     let kopf;
-    if (r.art === 'hoer' || r.art === 'klick') {
-        const unter = r.art === 'hoer' ? `${esc(r.titel)} <small>${esc(r.quelle || '')}</small>` : `${esc(KLAENGE[r.klang])} · ${r.bpm} bpm`;
+    if (r.art === 'hoer' || r.art === 'klick' || r.art === 'klopf') {
+        const unter = r.art !== 'klick' ? `${esc(r.titel)} <small>${r.quelle === 'Groove' ? r.bpm + ' bpm' : esc(r.quelle || '')}</small>` : `${esc(KLAENGE[r.klang])} · ${r.bpm} bpm`;
         kopf = `<div class="loesung-kopf"><div class="buehne-klein">${unter}</div>
             <div class="riesig">${r.ta}<small>-Takt</small></div><div class="zaehlen">${TA_ZAEHLEN[TA.indexOf(r.ta)].split(' ').map((z, i) => `<b class="${i ? '' : 'eins'}">${z}</b>`).join('')}</div></div>
-            ${verteilung(TA.map(t => `<b>${t}</b>`), zeilen, TA.indexOf(r.ta))}`;
+            ${verteilung(TA.map(t => `<b>${t}</b>`), r.art === 'klopf' ? zeilen.map(z => ({ w: TA.indexOf(z.erkannt) })) : zeilen, TA.indexOf(r.ta))}`;
     } else if (r.art === 'quiz') {
         kopf = `<div class="wwm"><div class="wwm-haupt"><div class="wwm-frage">${esc(r.frage)}</div>
             ${verteilung(r.antworten.map((a, k) => `<b>${ABCD[k]}:</b> ${esc(a)}`), zeilen, r.richtig)}</div></div>`;
@@ -1120,6 +1179,7 @@ function lAufloesungZeigen(r) {
 
     const wert = (z) => {
         if (r.art === 'hoer' || r.art === 'klick') return `${TA[Number(z.w)] || '?'} ${z.b ? '✅' : '❌'}`;
+        if (r.art === 'klopf') return z.erkannt ? `${z.erkannt} ${z.erkannt === r.ta ? '✅' : '❌'} <small>${z.gleich} % gleichmäßig</small>` : 'zu wenig Takte';
         if (r.art === 'quiz') return `${ABCD[Number(z.w)] || '?'} ${z.b ? '✅' : '❌'}`;
         if (r.art === 'kobold') return `Takt ${Number(z.w) + 1} ${z.b ? '✅' : '❌'}`;
         if (r.art === 'strich') return `${z.richtig} richtig${z.falsch ? `, ${z.falsch} falsch` : ''}`;
@@ -1205,7 +1265,7 @@ function lZeitenZeigen() {
     $('l-zeiten').innerHTML = arten.map(a => `<span class="stufen"><span class="stufen-name">${esc(TEIL_INFO[a].name)}</span>
         <button type="button" class="btn" data-zeit="${a}:-5">−</button><span class="stufen-wert">${L.zeiten[a]} s</span>
         <button type="button" class="btn" data-zeit="${a}:5">+</button></span>`).join('')
-        + (arten.includes('hoer') ? `<span class="stufen" title="So lange läuft der Song im Hörquiz, bevor die Kinder tippen können"><span class="stufen-name">Erst zuhören</span>
+        + (arten.includes('hoer') || arten.includes('klopf') ? `<span class="stufen" title="So lange läuft der Song im Hörquiz, bevor die Kinder tippen können"><span class="stufen-name">Erst zuhören</span>
         <button type="button" class="btn" data-zeit="hoeren:-5">−</button><span class="stufen-wert">${L.zeiten.hoeren} s</span>
         <button type="button" class="btn" data-zeit="hoeren:5">+</button></span>` : '');
 }
@@ -1218,7 +1278,7 @@ function vollbild() {
 }
 
 function planText(r) {
-    if (r.art === 'hoer') return `${r.titel} (${r.ta})`;
+    if (r.art === 'hoer' || r.art === 'klopf') return `${r.titel} (${r.ta}${r.bpm ? ' · ' + r.bpm + ' bpm' : ''})`;
     if (r.art === 'klick') return `${KLAENGE[r.klang]} · ${r.ta} · ${r.bpm} bpm`;
     if (r.art === 'quiz') return r.frage;
     if (r.art === 'takt') return `${r.profi ? 'Profi: ' : ''}${r.w.join(' · ')}`;
@@ -1348,12 +1408,13 @@ function lehrerStart() {
         if (e.target.closest('#l-song-btn')) {
             if (song.paused) {
                 const r = L.plan[L.pos];
-                if (r && r.art === 'hoer' && song.dataset.key !== String(r.hb) && L.hbUrl[r.hb]) songLaden(r.hb, L.hbUrl[r.hb]);
+                if (r && r.hb && song.dataset.key !== String(r.hb) && L.hbUrl[r.hb]) songLaden(r.hb, L.hbUrl[r.hb]);
                 song.volume = 1; song.play().catch(() => { });
             } else song.pause();
         }
         if (e.target.closest('#l-song-neu')) { song.currentTime = songAnfang(); song.volume = 1; song.play().catch(() => { }); }
         if (e.target.closest('#l-vorspielen-btn')) lNochmalVorspielen();
+        if (e.target.closest('#l-groove-neu')) { const r = L.plan[L.pos]; if (r && r.art === 'klopf') klickVorspielen(r, null, grooveTakte(r)); }
         if (e.target.closest('#l-aufl-hoeren')) {
             const r = L.plan[L.pos];
             if (r && r.art === 'klick') klickVorspielen(r, null);
@@ -1474,6 +1535,7 @@ function sZeichnen() {
             return;
         }
         if (st.art === 'hoer' || st.art === 'klick') sTaktartKnoepfe();
+        else if (st.art === 'klopf') sKlopfZeigen(neu);
         else if (st.art === 'quiz') sQuizZeigen();
         else sNotenZeigen();
         sZeitTick();
@@ -1531,6 +1593,67 @@ function sTaktartKnoepfe() {
     };
     sHoerUhr = setInterval(tick, 250);
     tick();
+}
+
+/* ----- Eins-Klopfer: zwei Flaechen, links die 1, rechts die anderen Zaehlzeiten ----- */
+let sKlopf = [];
+function sKlopfText() {
+    // Die letzten drei Takte als Zaehlzeiten: "1 2 3 | 1 2 3 | 1 2"
+    const ab = sKlopf.findIndex(x => x.k === 'e');
+    if (ab < 0) return sKlopf.length ? 'Fang mit der 1 an – links!' : 'Links die 1 · rechts der Rest';
+    const takte = [];
+    sKlopf.slice(ab).forEach(x => { if (x.k === 'e') takte.push([1]); else takte[takte.length - 1].push(takte[takte.length - 1].length + 1); });
+    return takte.slice(-3).map(t => t.join(' ')).join('  |  ');
+}
+function sKlopfZeigen(neu) {
+    const st = sStand, a = st.aufgabe || {};
+    if (!neu && $('s-klopf-eins')) return;
+    sKlopf = [];
+    $('s-inhalt').className = 'karte s-mitte';
+    $('s-inhalt').innerHTML = `<div class="s-klein">🥁 Eins-Klopfer · ${a.k || ''} von ${a.n || ''}</div>
+        <div class="s-gross" id="s-klopf-status"></div>
+        <div class="klopf-flaechen" id="s-klopf-flaechen">
+            <button type="button" class="klopf-pad eins" id="s-klopf-eins"><b>1</b><small>betont</small></button>
+            <button type="button" class="klopf-pad rest" id="s-klopf-rest"><b>2 3 4</b><small>die anderen</small></button>
+        </div>
+        <div class="klopf-zaehlen" id="s-klopf-zaehlen">${sKlopfText()}</div>
+        <div class="leiste mitte">
+            <button type="button" class="btn" id="s-klopf-neu"><i class="fa-solid fa-rotate-left"></i> Neu</button>
+            <button type="button" class="btn btn-gross btn-primaer" id="s-klopf-ab" disabled><i class="fa-solid fa-check"></i> Abgeben</button>
+        </div>`;
+    const flaechen = $('s-klopf-flaechen');
+    const tick = () => {
+        if (!$('s-klopf-status')) return clearInterval(sHoerUhr);
+        const rest = st.spieltBis ? Math.ceil((st.spieltBis - jetzt()) / 1000) : 0;
+        flaechen.classList.toggle('gesperrt', rest > 0);
+        $('s-klopf-status').textContent = rest > 0 ? `🎧 erst zuhören … ${rest}` : 'Klopf mit!';
+        if (rest <= 0) clearInterval(sHoerUhr);
+    };
+    sHoerUhr = setInterval(tick, 250);
+    tick();
+    const klopf = (art) => (e) => {
+        e.preventDefault();
+        if (st.spieltBis && jetzt() < st.spieltBis) return;
+        const t = e.timeStamp || performance.now();
+        // Nach einer langen Pause neu anfangen, hoechstens 48 Tipps merken
+        if (sKlopf.length && t - sKlopf[sKlopf.length - 1].t > 3000) sKlopf = [];
+        sKlopf.push({ k: art, t });
+        if (sKlopf.length > 48) sKlopf.shift();
+        const pad = e.currentTarget;
+        pad.classList.remove('blitz'); void pad.offsetWidth; pad.classList.add('blitz');
+        $('s-klopf-zaehlen').textContent = sKlopfText();
+        // Abgeben ab zwei vollen Takten (drei Einsen)
+        $('s-klopf-ab').disabled = sKlopf.filter(x => x.k === 'e').length < 3;
+    };
+    $('s-klopf-eins').addEventListener('pointerdown', klopf('e'));
+    $('s-klopf-rest').addEventListener('pointerdown', klopf('a'));
+    $('s-klopf-neu').addEventListener('click', () => { sKlopf = []; $('s-klopf-zaehlen').textContent = sKlopfText(); $('s-klopf-ab').disabled = true; });
+    $('s-klopf-ab').addEventListener('click', () => {
+        const ab = sKlopf.findIndex(x => x.k === 'e');
+        if (ab < 0) return;
+        const t0 = sKlopf[ab].t;
+        sAbgeben(sKlopf.slice(ab).map(x => x.k + Math.round(x.t - t0)).join(','));
+    });
 }
 
 /* ----- Millionaer ----- */
@@ -1593,7 +1716,11 @@ function sNotenTipp(e) {
 function sErgebnisZeigen(key) {
     const st = sStand, w = st.wertung && st.wertung[geraet], meine = sAbgabe[key], l = st.loesung || {};
     let detail = '';
-    if (st.art === 'hoer' || st.art === 'klick') {
+    if (st.art === 'klopf') {
+        const k = meine !== undefined ? klopfBasis(l.ta, meine) : null;
+        detail = `<p class="s-mittel">Lösung: <b>${esc(l.ta)}-Takt</b></p>${l.titel ? `<p class="hinweis">${esc(l.titel)}</p>` : ''}
+            ${k ? `<p class="hinweis">Du hast ${k.erkannt ? `einen <b>${esc(k.erkannt)}</b>-Takt` : 'zu wenig Takte'} geklopft${k.erkannt ? ` · ${k.gleich} % gleichmäßig` : ''}.</p>` : ''}`;
+    } else if (st.art === 'hoer' || st.art === 'klick') {
         detail = `<p class="s-mittel">Lösung: <b>${esc(l.ta)}-Takt</b></p>${l.titel ? `<p class="hinweis">${esc(l.titel)}</p>` : ''}
             ${meine !== undefined && TA[Number(meine)] !== l.ta ? `<p class="hinweis">Du: ${TA[Number(meine)]}</p>` : ''}`;
     } else if (st.art === 'quiz') {

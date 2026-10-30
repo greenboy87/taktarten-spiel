@@ -444,3 +444,18 @@ button.name:hover { background: rgba(248, 113, 113, .2); border-color: var(--rot
 .zaehlen .eins { color: var(--gold); }
 .verteilung { margin-top: 1.2rem; }
 .verteilung.wwm-antworten { grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); }
+
+/* Eins-Klopfer */
+.klopf-tafel { display: flex; justify-content: center; gap: clamp(1rem, 4vw, 3rem); margin: 1.2rem 0; }
+.klopf-tafel span { font-family: 'Russo One', sans-serif; font-size: clamp(2.6rem, 6vw, 4.5rem); width: clamp(10rem, 22vw, 16rem); padding: 1rem; border-radius: 1.4rem; display: flex; flex-direction: column; align-items: center; }
+.klopf-tafel small { font-family: 'DM Sans', sans-serif; font-size: 1rem; font-weight: 700; opacity: .8; }
+.klopf-tafel .eins, .klopf-pad.eins { background: radial-gradient(circle at 35% 30%, #fde68a, var(--gold) 50%, #b45309); color: #1a1205; }
+.klopf-tafel .rest, .klopf-pad.rest { background: radial-gradient(circle at 35% 30%, #a5f3fc, var(--cyan) 50%, #0e7490); color: #04202a; }
+.klopf-flaechen { display: grid; grid-template-columns: 1fr 1fr; gap: .7rem; width: 100%; }
+.klopf-flaechen.gesperrt { filter: grayscale(1) brightness(.5); pointer-events: none; }
+.klopf-pad { border: 0; border-radius: 1.4rem; min-height: min(52vh, 320px); cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .3rem; touch-action: manipulation; user-select: none; -webkit-user-select: none; box-shadow: inset 0 -10px 30px rgba(0, 0, 0, .25); }
+.klopf-pad b { font-family: 'Russo One', sans-serif; font-weight: 400; font-size: 3rem; line-height: 1; }
+.klopf-pad.rest b { font-size: 2.2rem; }
+.klopf-pad small { font-weight: 700; opacity: .8; }
+.klopf-pad.blitz { animation: tipp .14s ease-out; }
+.klopf-zaehlen { font-family: 'Russo One', sans-serif; font-size: 1.4rem; color: var(--gold); min-height: 1.8rem; letter-spacing: .05em; }

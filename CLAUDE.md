@@ -5,10 +5,20 @@
 Klassenspiel zur Stunde „Die Taktarten“ (Klasse 5, Stundenordner
 `Klasse 5 - 1c Taktarten +`). Aufbau, Raum-Logik und Look wie die
 Metrum-Challenge (`metrum-spiel`), Skill `klassenspiel-bauen`.
-Sieben Teile (Reihenfolge `TEILE` in `js/spiel.js`):
 
-- **Hörquiz** (`hoer`): Songs aus dem Ordner „Hörbeispiele“ (Folien 2–8),
-  Kinder tippen 2/4, 3/4 oder 4/4. „Erst zuhören“ sperrt die Knöpfe.
+**Gedacht als Abschluss-Überprüfung nach dem Arbeitsblatt – mit neuen
+Aufgaben.** Keine Zeilen 1:1 vom Arbeitsblatt oder von den Folien übernehmen;
+die Songs der Stunde sind deshalb standardmäßig aus (`hbAus`).
+
+Acht Teile (Reihenfolge `TEILE` in `js/spiel.js`):
+
+- **Hörquiz** (`hoer`): neue Songs („Eigene Songs“), Kinder tippen 2/4, 3/4
+  oder 4/4. „Erst zuhören“ sperrt die Knöpfe. Ohne Songs fällt der Teil weg.
+- **Eins-Klopfer** (`klopf`, Toms Idee): links auf die 1, rechts auf die
+  anderen Zählzeiten klopfen; `klopfBasis` erkennt die Taktart aus den Tipps
+  zwischen zwei Einsen und bewertet die Gleichmäßigkeit. Neue Songs, die nicht
+  im Hörquiz dran waren, sonst ein Groove aus `klickVorspielen` (Bus
+  `ausgang`, `vorspielStopp` blendet ihn beim Auflösen aus).
 - **Klick-Detektiv** (`klick`, eigene Idee): Web Audio spielt Metronom,
   Schlagzeug oder Blaskapelle mit betonter 1, Taktart und Tempo zufällig.
 - **Taktart eintragen** (`takt`, Aufgabe 2 + 6): „?“ antippen, Taktart wählen;

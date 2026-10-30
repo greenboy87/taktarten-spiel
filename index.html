@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@700&family=DM+Sans:wght@400;500;700;900&family=Russo+One&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-<link rel="stylesheet" href="css/spiel.css?v=2">
+<link rel="stylesheet" href="css/spiel.css?v=4">
 </head>
 <body>
 
@@ -46,22 +46,22 @@
 
         <div class="hb-feld">
             <div class="leiste">
-                <b><i class="fa-solid fa-music"></i> Hörbeispiele für das Hörquiz</b>
+                <b><i class="fa-solid fa-music"></i> Songs aus der Stunde (bekannt)</b>
                 <span class="fuellt"></span>
                 <label class="btn"><i class="fa-solid fa-folder-open"></i> MP3s wählen
                     <input type="file" id="l-hb-datei" accept="audio/*,.mp3" multiple hidden></label>
             </div>
             <div id="l-hb-liste" class="hb-liste"></div>
-            <p class="hinweis klein">Einmal alle Dateien aus dem Stundenordner wählen (Ordner „Hörbeispiele“ – einfach alle markieren). Das Spiel ordnet sie über den Dateinamen zu; die Tanz-Songs werden übersprungen. Sie bleiben nur in diesem Browser gespeichert und werden nirgends hochgeladen. Ohne Datei spielst du den Song über die Folie ab. Häkchen = kommt im Spiel vor.</p>
+            <p class="hinweis klein">Die Songs aus der Stunde kennen die Kinder schon (mit Lösung) – deshalb sind sie standardmäßig aus. Bei Bedarf: „MP3s wählen“ → Ordner „Hörbeispiele“, alle Dateien markieren; das Spiel ordnet sie über den Dateinamen zu. Sie bleiben nur in diesem Browser gespeichert und werden nirgends hochgeladen. Ohne Datei spielst du den Song über die Folie ab. Häkchen = kommt im Spiel vor.</p>
 
             <div class="leiste" style="margin-top:1rem;">
-                <b><i class="fa-solid fa-plus"></i> Eigene Songs</b>
+                <b><i class="fa-solid fa-plus"></i> Neue Songs für die Überprüfung</b>
                 <span class="fuellt"></span>
                 <label class="btn"><i class="fa-solid fa-file-audio"></i> Song hinzufügen
                     <input type="file" id="l-eigene-datei" accept="audio/*,.mp3,.m4a,.wav" multiple hidden></label>
             </div>
             <div id="l-eigene-liste" class="eigene-liste"></div>
-            <p class="hinweis klein">Titel und Taktart eintragen. Steht die Taktart im Dateinamen („… 3-4.mp3“), wird sie übernommen. Lange Songs starten bei 0:30. Alles bleibt nur in diesem Browser.</p>
+            <p class="hinweis klein">Für Hörquiz und Eins-Klopfer: Titel und Taktart eintragen. Steht die Taktart im Dateinamen („… 3-4.mp3“), wird sie übernommen. Ohne neue Songs spielt der Eins-Klopfer eigene Grooves. Lange Songs starten bei 0:30. Alles bleibt nur in diesem Browser.</p>
         </div>
 
         <details class="regeln" open>
@@ -213,8 +213,8 @@
 
 <div id="toast-bereich"></div>
 
-<script src="js/qrcode.min.js?v=2"></script>
-<script src="js/noten.js?v=2"></script>
-<script type="module" src="js/spiel.js?v=2"></script>
+<script src="js/qrcode.min.js?v=4"></script>
+<script src="js/noten.js?v=4"></script>
+<script type="module" src="js/spiel.js?v=4"></script>
 </body>
 </html>

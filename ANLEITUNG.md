@@ -1,13 +1,16 @@
 # Taktarten-Challenge – Anleitung
 
-Klassenspiel zur Stunde „Die Taktarten“ (Klasse 5). Der Beamer zeigt Raum und
-QR-Code, die Kinder spielen am iPad oder Handy mit.
+Klassenspiel zur Stunde „Die Taktarten“ (Klasse 5) – als **Abschluss-Überprüfung,
+wenn das Arbeitsblatt fertig ist**. Alle Notenaufgaben sind neu, nicht vom
+Arbeitsblatt. Der Beamer zeigt Raum und QR-Code, die Kinder spielen am iPad
+oder Handy mit.
 
 ## Spielplan (ganze Challenge, ca. 30 Runden)
 
 | Teil | Runden | Was passiert | Punkte |
 |---|---|---|---|
-| 🎧 Hörquiz | 5 (einstellbar) | Song läuft, nach 10 s „erst zuhören“ tippen die Kinder 2/4, 3/4 oder 4/4 | richtig = 100 |
+| 🎧 Hörquiz | 5 (einstellbar) | neuer Song läuft, nach 10 s „erst zuhören“ tippen die Kinder 2/4, 3/4 oder 4/4 | richtig = 100 |
+| 🥁 Eins-Klopfer | 3 | zu Song oder Groove klopfen: links die 1, rechts die anderen Zählzeiten | richtige Taktart + gleichmäßig = 100 |
 | 🕵️ Klick-Detektiv | 3 | Metronom, Schlagzeug oder Blaskapelle mit betonter 1, Tempo zufällig | richtig = 100 |
 | ✏️ Taktart eintragen | 4 | „?“ vor dem Takt antippen, Taktart wählen; 2 Profi-Zeilen mit Taktwechsel | anteilig je „?“ |
 | ┃ Taktstriche setzen | 4 | zwischen die Noten tippen, wo ein Taktstrich hingehört | richtige minus falsche Striche |
@@ -21,11 +24,12 @@ Dazu für die ersten fünf Abgaben mit mindestens 60 Punkten ein Platzbonus
 ## Vor der Stunde (einmal)
 
 1. Seite am Beamer-Rechner öffnen.
-2. **MP3s wählen** → im Stundenordner den Ordner **„Hörbeispiele“** öffnen, alle
-   Dateien markieren. Das Spiel ordnet sie selbst zu (14 Hörbeispiele, die
-   Tanz-Songs werden übersprungen). Die Musik bleibt nur in diesem Browser.
-3. Häkchen bei den Songs = kommen ins Hörquiz. Eigene Songs: „Song hinzufügen“,
-   Taktart wählen.
+2. **Neue Songs für die Überprüfung** → „Song hinzufügen“, Taktart wählen (steht
+   sie im Dateinamen, z. B. „… 3-4.mp3“, wird sie übernommen). Die Musik bleibt
+   nur in diesem Browser. Ohne neue Songs fällt das Hörquiz weg, der
+   Eins-Klopfer spielt dann eigene Grooves.
+3. Die Songs aus der Stunde kennen die Kinder schon – sie sind deshalb aus.
+   Wer sie trotzdem will: „MP3s wählen“ → Ordner „Hörbeispiele“, Häkchen setzen.
 
 ## In der Stunde
 
