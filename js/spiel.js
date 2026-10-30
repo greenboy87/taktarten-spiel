@@ -373,7 +373,7 @@ function bumm(zeit) {
 // Blaskapelle: Tuba "Umm" auf der 1, Blech-"Pa" auf den anderen Schlaegen
 function ton(zeit, frequenzen, typ, laut, dauer) {
     const c = audio(), g = c.createGain(), f = c.createBiquadFilter();
-    f.type = 'lowpass'; f.frequency.value = typ === 'sawtooth' ? 2400 : 900;
+    f.type = 'lowpass'; f.frequency.value = typ === 'sawtooth' ? 1800 : 900;
     g.gain.setValueAtTime(0.0001, zeit);
     g.gain.exponentialRampToValueAtTime(laut, zeit + 0.02);
     g.gain.exponentialRampToValueAtTime(laut * 0.6, zeit + dauer * 0.6);
@@ -400,8 +400,10 @@ function klickVorspielen(r, onSchlag, takteFest) {
         const zeit = t0 + b * s, eins = b % n === 0, takt = Math.floor(b / n);
         if (r.klang === 'schlagzeug') { if (eins) bumm(zeit); else klatsch(zeit, 0.55); }
         else if (r.klang === 'blaskapelle') {
-            if (eins) ton(zeit, [takt % 2 ? 73.4 : 55], 'triangle', 0.9, s * 0.8);
-            else ton(zeit, takt % 2 ? [277, 349, 440] : [220, 277, 330], 'sawtooth', 0.09, s * 0.35);
+            // D-Dur: Takt fuer Takt Tonika (D) und Dominante (A), der Akkord immer passend zum Tuba-Ton
+            const d = takt % 2 === 0;
+            if (eins) ton(zeit, [d ? 73.42 : 55], 'triangle', 0.9, s * 0.8);
+            else ton(zeit, d ? [293.66, 369.99, 440] : [277.18, 329.63, 440], 'sawtooth', 0.08, s * 0.35);
         } else klick(zeit, eins);
     }
     const versatz = (t0 - c.currentTime) * 1000;
