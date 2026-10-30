@@ -31,7 +31,11 @@ Acht Teile (Reihenfolge `TEILE` in `js/spiel.js`):
 
 Inhalte stehen oben in `js/spiel.js` (`SONGS`, `TAKT`, `STRICH`, `LUECKE`,
 `KOBOLD`, `QUIZ`). Notenkürzel wie in der Rhythmus-Werkstatt (`js/noten.js`,
-unveränderte Kopie). Keine punktierten Noten (Toms Vorgabe für Klasse 5).
+unveränderte Kopie). Standardmäßig keine punktierten Noten (Klasse 5).
+Schalter „Mit punktierter Halbe“ (`ta-punktiert`, für Klassen mit Einschub):
+tauscht über `PUNKTIERT` einzelne Takte gegen `Hd`, die fehlende Note bekommt
+„punktierte Halbe“ zur Auswahl (Liste reist als `wahl` in Plan und Aufgabe mit),
+der Millionär die Fragen aus `QUIZ_PUNKTIERT`.
 Jeder Baustein wird als eigenes SVG gezeichnet (`notenSvg`), Taktart,
 Taktstriche und „?“ sind HTML (`zeileHtml`) – so sind sie am iPad antippbar.
 Alles per Tippen (pointerdown), kein HTML5-Drag.

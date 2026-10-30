@@ -89,7 +89,9 @@ const SONGS = [
 const KLAENGE = { metronom: 'Metronom', schlagzeug: 'Schlagzeug', blaskapelle: 'Blaskapelle' };
 
 /* Notenzeilen. Kuerzel wie in der Rhythmus-Werkstatt (noten.js). Ein Takt =
-   ein Text "V-V-AA". Keine punktierten Noten (Toms Vorgabe fuer Klasse 5).
+   ein Text "V-V-AA". Ohne punktierte Noten (Klasse 5) - nur mit dem Schalter
+   "Mit punktierter Halbe" (ta-punktiert, nach dem Einschub) tauschen die
+   Zeilen in PUNKTIERT einzelne Takte gegen "Hd" (punktierte Halbe).
    takt:   t = Taktart fuer alle Takte (nur vorne ein "?"), oder
            w = Taktart je Takt + f = welche Takte ein "?" bekommen (Profi).
    luecke: "?X" = hier fehlt die Note X.
@@ -126,8 +128,7 @@ const LUECKE = [
     { t: '2/4', b: ['AA-?V', 'V-V', '?H', 'V-AA'] },
     { t: '3/4', b: ['?V-H', 'V-V-V', 'H-?V', 'AA-?V-V'] }
 ];
-const LUECKE_WAHL = ['G', 'H', 'V', 'A'];
-const LUECKE_NAME = { G: 'Ganze', H: 'Halbe', V: 'Viertel', A: 'Achtel' };
+const LUECKE_NAME = { G: 'Ganze', Hd: 'punktierte Halbe', H: 'Halbe', V: 'Viertel', A: 'Achtel' };
 const KOBOLD = [
     { t: '3/4', b: ['V-V-V', 'H-V', 'V-V-V-V', 'H-V'], f: 2 },
     { t: '2/4', b: ['V-V', 'AA-AA', 'H-V', 'V-V'], f: 2 },
@@ -136,6 +137,20 @@ const KOBOLD = [
     { t: '4/4', b: ['AA-V-H', 'H-V-V', 'V-V-V-V-V', 'H-H'], f: 2 },
     { t: '2/4', b: ['V-AA', 'H', 'V-V-V', 'AA-V'], f: 2 }
 ];
+// Mit punktierter Halbe: Ersatz-Takte je Zeile (Nummer in TAKT, STRICH ... -> Takte)
+const PUNKTIERT = {
+    takt: { 0: ['V-V-V', 'H-V', 'AA-V-V', 'Hd'], 3: ['AA-AA-V', 'V-H', 'V-V-V', 'Hd'], 9: ['Hd', 'V-V-V-V', 'AA-AA', 'H-V'] },
+    strich: { 0: ['V-V-V', 'H-V', 'V-AA-V', 'Hd'], 3: ['H-V', 'AA-AA-V', 'V-H', 'Hd', 'AA-V-V'], 5: ['H-H', 'V-AA-H', 'AA-AA-AA-AA', 'Hd-V'], 6: ['V-V-V', 'AA-AA-AA', 'Hd', 'V-H'] },
+    luecke: { 1: ['V-V-V', '?H-V', 'AA-V-V', '?Hd'], 4: ['H-?V', 'AA-AA-AA', 'V-?H', 'Hd'], 5: ['?Hd-V', 'V-V-V-V', 'H-?H', 'V-AA-H'], 7: ['?Hd', 'V-V-V', 'H-?V', 'AA-?V-V'] },
+    kobold: { 0: ['V-V-V', 'H-V', 'V-V-V-V', 'Hd'], 3: ['Hd', 'V-H', 'AA-V-V', 'H-H'], 4: ['AA-V-H', 'Hd-V', 'V-V-V-V-V', 'H-H'], 5: ['V-AA', 'H', 'Hd', 'AA-V'] }
+};
+const QUIZ_PUNKTIERT = [
+    { frage: 'Welche Note füllt allein einen ganzen 3/4-Takt?', antworten: ['Die punktierte Halbe.', 'Die Ganze.', 'Die Achtel.', 'Die Kobold-Note.'] },
+    { frage: 'Wie viele Viertel dauert eine punktierte Halbe?', antworten: ['3', '2', '4', 'So lange, bis der Punkt abfällt.'] }
+];
+const punktiert = () => lesen('ta-punktiert', false);
+const mitPunkt = (teil, liste) => (punktiert() ? liste.map((x, i) => (PUNKTIERT[teil][i] ? Object.assign({}, x, { b: PUNKTIERT[teil][i] }) : x)) : liste);
+const luWahl = () => (punktiert() ? ['G', 'Hd', 'H', 'V', 'A'] : ['G', 'H', 'V', 'A']);
 // Erste Antwort ist jeweils die richtige, gemischt wird beim Raum oeffnen
 const QUIZ = [
     { frage: 'Wodurch wird ein Takt vorne und hinten begrenzt?', antworten: ['Durch Taktstriche.', 'Durch Bindestriche.', 'Durch Zebrastreifen.', 'Durch den Schlussstrich unter der Mathe-Aufgabe.'] },
@@ -166,6 +181,8 @@ const TEIL_INFO = {
 const ZEIT_STANDARD = { hoer: 30, klopf: 40, klick: 20, takt: 45, strich: 60, luecke: 45, kobold: 40, quiz: 20, hoeren: 10 };
 
 /* ---------- Noten ---------- */
+// Punktierte Halbe fehlt in noten.js - der Zeichner kann sie schon (nur mit dem Schalter im Spiel)
+RHYTHMUS_NACH_CODE.Hd = { code: 'Hd', dauer: 3, wort: 'Punktierte Halbe', teile: [{ d: 3 }] };
 const dauerVon = (code) => (RHYTHMUS_NACH_CODE[code] || { dauer: 0 }).dauer;
 const taktDauer = (takt) => takt.split('-').reduce((s, c) => s + dauerVon(c.replace('?', '')), 0);
 
@@ -215,6 +232,7 @@ function zeileHtml(r, s = {}) {
         });
         teile.push(endeHtml());
     } else if (r.art === 'luecke') {
+        const LW = r.wahl || ['G', 'H', 'V', 'A'];
         teile.push(taHtml(r.t));
         let f = 0;
         r.b.forEach((takt, i) => {
@@ -222,10 +240,10 @@ function zeileHtml(r, s = {}) {
                 if (!c.startsWith('?')) return notenSvg(c);
                 const k = f++, wahl = s.wahl ? s.wahl[k] : -1;
                 if (s.loesung) {
-                    const soll = s.soll[k], kl = wahl === undefined || wahl < 0 ? 'loes' : LUECKE_WAHL[wahl] === soll ? 'ok' : 'falsch';
+                    const soll = s.soll[k], kl = wahl === undefined || wahl < 0 ? 'loes' : LW[wahl] === soll ? 'ok' : 'falsch';
                     return `<span class="z z-luecke ${kl}">${notenSvg(soll)}</span>`;
                 }
-                return `<span class="z z-luecke ${s.aktiv === k ? 'aktiv' : ''}" data-luecke="${k}">${wahl >= 0 ? notenSvg(LUECKE_WAHL[wahl]) : '<b>?</b>'}</span>`;
+                return `<span class="z z-luecke ${s.aktiv === k ? 'aktiv' : ''}" data-luecke="${k}">${wahl >= 0 ? notenSvg(LW[wahl]) : '<b>?</b>'}</span>`;
             }).join('')}</span>`);
             teile.push(i < r.b.length - 1 ? strichHtml() : endeHtml());
         });
@@ -535,7 +553,7 @@ function teilRunden(teil, n, ohne) {
     }
     if (teil === 'takt') {
         // Erst Zeilen mit einer Taktart, dann die Profi-Zeilen mit Wechsel
-        const einfach = TAKT.filter(x => x.t), profi = TAKT.filter(x => x.w);
+        const alle = mitPunkt('takt', TAKT), einfach = alle.filter(x => x.t), profi = alle.filter(x => x.w);
         const np = Math.min(profi.length, Math.floor(n / 2)), ne = Math.min(einfach.length, n - np);
         return ziehen(einfach, ne).concat(ziehen(profi, Math.min(profi.length, n - ne))).map(x => {
             const w = x.w || x.b.map(() => x.t);
@@ -544,24 +562,26 @@ function teilRunden(teil, n, ohne) {
         });
     }
     if (teil === 'strich') {
-        return ziehen(STRICH, n).map(x => {
+        return ziehen(mitPunkt('strich', STRICH), n).map(x => {
             const c = [], soll = [];
             x.b.forEach((takt, i) => { takt.split('-').forEach(k => c.push(k)); if (i < x.b.length - 1) soll.push(c.length - 1); });
             return { art: 'strich', t: x.t, c, soll };
         });
     }
     if (teil === 'luecke') {
-        return ziehen(LUECKE, n).map(x => {
+        return ziehen(mitPunkt('luecke', LUECKE), n).map(x => {
             const soll = [];
             x.b.forEach(takt => takt.split('-').forEach(k => { if (k.startsWith('?')) soll.push(k.slice(1)); }));
-            return { art: 'luecke', t: x.t, b: x.b, soll };
+            return { art: 'luecke', t: x.t, b: x.b, soll, wahl: luWahl() };
         });
     }
     if (teil === 'kobold') {
-        return ziehen(KOBOLD, n).map(x => ({ art: 'kobold', t: x.t, b: x.b, falsch: x.f, schlaege: taktDauer(x.b[x.f]) }));
+        return ziehen(mitPunkt('kobold', KOBOLD), n).map(x => ({ art: 'kobold', t: x.t, b: x.b, falsch: x.f, schlaege: taktDauer(x.b[x.f]) }));
     }
-    return mischen(QUIZ.length).slice(0, Math.min(n, QUIZ.length)).map(i => {
-        const q = QUIZ[i], ord = mischen(q.antworten.length);
+    // Mit punktierter Halbe kommen deren Fragen sicher dran, der Rest zufaellig
+    const fragen = punktiert() ? QUIZ_PUNKTIERT.concat(mischen(QUIZ.length).map(i => QUIZ[i])) : mischen(QUIZ.length).map(i => QUIZ[i]);
+    return mischen(Math.min(n, fragen.length)).map(i => {
+        const q = fragen[i], ord = mischen(q.antworten.length);
         return { art: 'quiz', frage: q.frage, antworten: ord.map(k => q.antworten[k]), richtig: ord.indexOf(0) };
     });
 }
@@ -611,6 +631,7 @@ function lRundenwahlZeigen() {
         info = `= ${Math.min(n, pool)} von ${pool} Songs im Pool · ${gesamt} Runden insgesamt` + (pool ? '' : ' – fürs Hörquiz unten neue Songs hinzufügen (sonst fällt es weg)');
     }
     $('l-zahl-info').textContent = info;
+    $('l-punktiert').checked = punktiert();
 }
 
 function regelnHtml() {
@@ -840,7 +861,7 @@ function aufgabeVon(r) {
     if (r.art === 'klick') return { klang: KLAENGE[r.klang], bpm: r.bpm };
     if (r.art === 'takt') return { b: r.b, zeig: r.zeig };
     if (r.art === 'strich') return { t: r.t, c: r.c.join('-') };
-    if (r.art === 'luecke') return { t: r.t, b: r.b.map(takt => takt.split('-').map(c => (c.startsWith('?') ? '?' : c)).join('-')) };
+    if (r.art === 'luecke') return { t: r.t, b: r.b.map(takt => takt.split('-').map(c => (c.startsWith('?') ? '?' : c)).join('-')), wahl: r.wahl || ['G', 'H', 'V', 'A'] };
     if (r.art === 'kobold') return { t: r.t, b: r.b };
     return { frage: r.frage, antworten: r.antworten };
 }
@@ -848,7 +869,7 @@ function aufgabeVon(r) {
 function rundeAusAufgabe(art, a) {
     if (art === 'takt') return { art, b: a.b || [], zeig: a.zeig || [], w: [] };
     if (art === 'strich') return { art, t: a.t, c: String(a.c || '').split('-') };
-    if (art === 'luecke') return { art, t: a.t, b: (a.b || []).map(takt => takt.replace(/\?/g, '?V')) };
+    if (art === 'luecke') return { art, t: a.t, b: (a.b || []).map(takt => takt.replace(/\?/g, '?V')), wahl: a.wahl };
     return { art, t: a.t, b: a.b || [] };
 }
 
@@ -907,7 +928,7 @@ function basisVon(r, w) {
     if (r.art === 'quiz') return indexBasis(r.richtig, w);
     if (r.art === 'kobold') return indexBasis(r.falsch, w);
     if (r.art === 'takt') return mehrBasis(r.zeig.map((z, i) => (z === '?' ? TA.indexOf(r.w[i]) : null)).filter(x => x !== null), w);
-    if (r.art === 'luecke') return mehrBasis(r.soll.map(c => LUECKE_WAHL.indexOf(c)), w);
+    if (r.art === 'luecke') return mehrBasis(r.soll.map(c => (r.wahl || ['G', 'H', 'V', 'A']).indexOf(c)), w);
     return strichBasis(r.soll, w);
 }
 function loesungVon(r) {
@@ -1315,6 +1336,7 @@ function lehrerStart() {
             hbAendern(k, { [feld.dataset.feld]: wert }).then(() => { L.hb[k][feld.dataset.feld] = wert; if (feld.dataset.feld === 'ta') lEigeneZeigen(); });
         }
         if (e.target.closest('[data-wahl]')) lWahlZaehlen();
+        if (e.target.id === 'l-punktiert') { schreiben('ta-punktiert', e.target.checked); lRundenwahlZeigen(); }
     });
     song.addEventListener('ended', () => { if ($('l-start').offsetParent) lEigeneZeigen(); });
     // Tastatur am Beamer-Rechner: F = Vollbild, M = Mitspieler (nicht beim Tippen in ein Feld)
@@ -1678,7 +1700,7 @@ function sNotenZeigen() {
     const s = st.art === 'strich' ? { striche: sWahl } : { wahl: sWahl, aktiv: sAktiv };
     let wahlLeiste = '';
     if (st.art === 'takt') wahlLeiste = `<div class="wahl-leiste">${TA.map((t, k) => `<button type="button" class="btn wahl ${sWahl[sAktiv] === k ? 'an' : ''}" data-ta="${k}">${t}</button>`).join('')}</div>`;
-    if (st.art === 'luecke') wahlLeiste = `<div class="wahl-leiste">${LUECKE_WAHL.map((c, k) => `<button type="button" class="btn wahl note ${sWahl[sAktiv] === k ? 'an' : ''}" data-nw="${k}" title="${LUECKE_NAME[c]}">${notenSvg(c)}<small>${LUECKE_NAME[c]}</small></button>`).join('')}</div>`;
+    if (st.art === 'luecke') wahlLeiste = `<div class="wahl-leiste">${(r.wahl || ['G', 'H', 'V', 'A']).map((c, k) => `<button type="button" class="btn wahl note ${sWahl[sAktiv] === k ? 'an' : ''}" data-nw="${k}" title="${LUECKE_NAME[c]}">${notenSvg(c)}<small>${LUECKE_NAME[c]}</small></button>`).join('')}</div>`;
     const fertig = st.art === 'strich' ? sWahl.size > 0 : st.art === 'kobold' ? sWahl >= 0 : sWahl.every(x => x >= 0);
     $('s-inhalt').className = 'karte s-mitte s-noten';
     $('s-inhalt').innerHTML = `<div class="s-klein">${esc(TEIL_INFO[st.art].name)}</div>
