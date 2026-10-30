@@ -634,7 +634,19 @@ function lRundenwahlZeigen() {
     const fehlt = ohneDatei().length;
     $('l-zahl-info').innerHTML = esc(info) + (fehlt ? ` <span class="warnung">· ${fehlt} angehakte Song${fehlt === 1 ? '' : 's'} der Stunde ohne Datei – zählen nicht, erst „MP3s wählen“</span>` : '');
     $('l-punktiert').checked = punktiert();
-    zeigen('l-songs-zufall', m !== 'einzeln' || einzelTeil() === 'hoer' || einzelTeil() === 'klopf');
+    const mitSongs = m !== 'einzeln' || einzelTeil() === 'hoer' || einzelTeil() === 'klopf';
+    zeigen('l-songs-zufall', mitSongs);
+    zeigen('l-songs-alle', mitSongs);
+}
+// Knopf "Alle Songs": alle Songs mit Datei anhaken, Anzahl auf "alle"
+function lSongsAlle() {
+    const da = SONGS.filter(x => L.hb[x.hb]).map(x => String(x.hb)).concat(eigeneSongs().filter(([, v]) => TA.includes(v.ta)).map(([k]) => k));
+    if (!da.length) { toast('Erst Songs laden – „Song hinzufügen“ oder „MP3s wählen“', 'fehler'); return; }
+    const an = new Set(da);
+    schreiben('ta-hb-aus', SONGS.map(x => String(x.hb)).concat(eigeneSongs().map(([k]) => k)).filter(k => !an.has(k)));
+    schreiben(modus() === 'einzeln' ? 'ta-runden' : 'ta-songzahl', 99);
+    lHbAnzeigen();
+    toast(`Alle ${da.length} Songs ausgewählt`);
 }
 /* Knopf "Songs zufaellig auswaehlen": hakt genau so viele Songs an, wie unter
    "Umfang" eingestellt sind - zuerst neue (eigene) Songs, erst wenn die nicht
@@ -1419,6 +1431,7 @@ function lehrerStart() {
         if (dazu && L.code) lSongEinfuegen(dazu.dataset.songDazu);
         if (e.target.closest('[data-song-zufall]') && L.code) lSongEinfuegen(null);
         if (e.target.closest('#l-songs-zufall')) lSongsZufall();
+        if (e.target.closest('#l-songs-alle')) lSongsAlle();
         if (e.target.closest('#l-spieler-btn')) lSpielerDialog();
         if (e.target.closest('#l-voll-btn')) vollbild();
         if (e.target.closest('#l-auto-btn')) {
