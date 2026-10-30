@@ -28,9 +28,12 @@ Dazu für die ersten fünf Abgaben mit mindestens 60 Punkten ein Platzbonus
    sie im Dateinamen, z. B. „… 3-4.mp3“, wird sie übernommen). Die Musik bleibt
    nur in diesem Browser. Ohne neue Songs fällt das Hörquiz weg, der
    Eins-Klopfer spielt dann eigene Grooves.
-3. **Mit punktierter Halbe** (Schalter unter „Umfang“) nur anhaken, wenn der
+3. **Songs zufällig auswählen** (Würfel-Knopf unter „Umfang“) hakt genau so viele Songs
+   an, wie eingestellt sind – zuerst neue Songs, nur wenn die nicht reichen welche aus der Stunde.
+   Jeder Klick würfelt neu.
+4. **Mit punktierter Halbe** (Schalter unter „Umfang“) nur anhaken, wenn der
    Einschub dran war – dann kommen Aufgaben und Quizfragen mit punktierter Halbe dazu.
-4. Die Songs aus der Stunde kennen die Kinder schon – sie sind deshalb aus.
+5. Die Songs aus der Stunde kennen die Kinder schon – sie sind deshalb aus.
    Wer sie trotzdem will: „MP3s wählen“ → Ordner „Hörbeispiele“, Häkchen setzen.
 
 ## In der Stunde

@@ -632,6 +632,22 @@ function lRundenwahlZeigen() {
     }
     $('l-zahl-info').textContent = info;
     $('l-punktiert').checked = punktiert();
+    zeigen('l-songs-zufall', m !== 'einzeln' || einzelTeil() === 'hoer' || einzelTeil() === 'klopf');
+}
+/* Knopf "Songs zufaellig auswaehlen": hakt genau so viele Songs an, wie unter
+   "Umfang" eingestellt sind - zuerst neue (eigene) Songs, erst wenn die nicht
+   reichen, geladene Songs der Stunde. Alle anderen Haekchen gehen aus. */
+function lSongsZufall() {
+    const n = modus() === 'einzeln' ? einzelRunden() : songZahl();
+    const neue = eigeneSongs().filter(([, v]) => TA.includes(v.ta)).map(([k]) => k);
+    const stunde = SONGS.filter(x => L.hb[x.hb]).map(x => String(x.hb));
+    if (!neue.length && !stunde.length) { toast('Erst Songs laden – „Song hinzufügen“ oder „MP3s wählen“', 'fehler'); return; }
+    const wahl = mischen(neue.length).map(i => neue[i]).concat(mischen(stunde.length).map(i => stunde[i])).slice(0, n >= 99 ? undefined : n);
+    const an = new Set(wahl);
+    schreiben('ta-hb-aus', SONGS.map(x => String(x.hb)).concat(eigeneSongs().map(([k]) => k)).filter(k => !an.has(k)));
+    lHbAnzeigen();
+    const ausStunde = wahl.filter(k => !k.startsWith('e-')).length;
+    toast(`${wahl.length} Song${wahl.length === 1 ? '' : 's'} zufällig ausgewählt` + (ausStunde ? ` (davon ${ausStunde} aus der Stunde – zu wenig neue)` : '') + (n < 99 && wahl.length < n ? ` – nur ${wahl.length} vorhanden` : ''));
 }
 
 function regelnHtml() {
@@ -1400,6 +1416,7 @@ function lehrerStart() {
         const dazu = e.target.closest('[data-song-dazu]');
         if (dazu && L.code) lSongEinfuegen(dazu.dataset.songDazu);
         if (e.target.closest('[data-song-zufall]') && L.code) lSongEinfuegen(null);
+        if (e.target.closest('#l-songs-zufall')) lSongsZufall();
         if (e.target.closest('#l-spieler-btn')) lSpielerDialog();
         if (e.target.closest('#l-voll-btn')) vollbild();
         if (e.target.closest('#l-auto-btn')) {
