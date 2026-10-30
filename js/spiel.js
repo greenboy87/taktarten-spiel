@@ -522,10 +522,11 @@ const einzelRunden = () => lesen('ta-runden', 8);
 const songZahl = () => lesen('ta-songzahl', 5);
 const teileAn = () => lesen('ta-bloecke', TEILE);
 
-// Pool fuer das Hoerquiz: angehakte Songs der Stunde (auch ohne geladene Datei - dann ueber die Folie) und angehakte eigene mit Taktart
+// Pool fuer Hoerquiz und Eins-Klopfer: angehakte Songs mit geladener Datei (sonst bliebe die Runde stumm) und eigene mit Taktart
+const ohneDatei = () => SONGS.filter(s => !hbAus().has(String(s.hb)) && !L.hb[s.hb]);
 function songPool() {
     const aus = hbAus();
-    const fest = SONGS.filter(s => !aus.has(String(s.hb))).map(s => ({ hb: s.hb, titel: s.titel, ta: s.ta, quelle: s.quelle }));
+    const fest = SONGS.filter(s => !aus.has(String(s.hb)) && L.hb[s.hb]).map(s => ({ hb: s.hb, titel: s.titel, ta: s.ta, quelle: s.quelle }));
     const eigene = eigeneSongs().filter(([k, v]) => !aus.has(k) && TA.includes(v.ta))
         .map(([k, v]) => ({ hb: k, titel: v.titel || v.name, ta: v.ta, quelle: 'eigener Song' }));
     return fest.concat(eigene);
@@ -630,7 +631,8 @@ function lRundenwahlZeigen() {
         const gesamt = TEILE.filter(t => teileAn().includes(t)).reduce((s, t) => s + (t === 'hoer' ? Math.min(n, pool) : teilRunden(t, TEIL_INFO[t].runden).length), 0);
         info = `= ${Math.min(n, pool)} von ${pool} Songs im Pool · ${gesamt} Runden insgesamt` + (pool ? '' : ' – fürs Hörquiz unten neue Songs hinzufügen (sonst fällt es weg)');
     }
-    $('l-zahl-info').textContent = info;
+    const fehlt = ohneDatei().length;
+    $('l-zahl-info').innerHTML = esc(info) + (fehlt ? ` <span class="warnung">· ${fehlt} angehakte Song${fehlt === 1 ? '' : 's'} der Stunde ohne Datei – zählen nicht, erst „MP3s wählen“</span>` : '');
     $('l-punktiert').checked = punktiert();
     zeigen('l-songs-zufall', m !== 'einzeln' || einzelTeil() === 'hoer' || einzelTeil() === 'klopf');
 }
@@ -670,7 +672,7 @@ async function lHbAnzeigen() {
     const aus = hbAus();
     $('l-hb-liste').innerHTML = SONGS.map(s => {
         const da = !!L.hb[s.hb];
-        return `<label class="hb ${da ? 'da' : ''}" title="${da ? 'geladen' : 'nicht geladen – dann über die Folie abspielen'}">
+        return `<label class="hb ${da ? 'da' : ''}" title="${da ? 'geladen' : 'nicht geladen – zählt erst nach „MP3s wählen“'}">
             <input type="checkbox" data-hb-an="${s.hb}" ${aus.has(String(s.hb)) ? '' : 'checked'}>
             <i class="fa-solid ${da ? 'fa-circle-check' : 'fa-circle'}"></i> ${esc(s.titel)} <small>${s.ta} · ${esc(s.quelle)}</small></label>`;
     }).join('');
