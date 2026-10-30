@@ -459,3 +459,5 @@ button.name:hover { background: rgba(248, 113, 113, .2); border-color: var(--rot
 .klopf-pad small { font-weight: 700; opacity: .8; }
 .klopf-pad.blitz { animation: tipp .14s ease-out; }
 .klopf-zaehlen { font-family: 'Russo One', sans-serif; font-size: 1.4rem; color: var(--gold); min-height: 1.8rem; letter-spacing: .05em; }
+.wahl-leiste:has(.note) { flex-wrap: nowrap; width: 100%; max-width: 420px; }
+.btn.wahl.note { flex: 1 1 0; min-width: 0; }

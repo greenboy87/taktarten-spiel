@@ -88,53 +88,53 @@ const SONGS = [
 // Klick-Detektiv: drei Klaenge, die betonte 1 klingt jeweils anders
 const KLAENGE = { metronom: 'Metronom', schlagzeug: 'Schlagzeug', blaskapelle: 'Blaskapelle' };
 
-/* Notenzeilen. Kuerzel wie in der Rhythmus-Werkstatt (noten.js), dazu "Hd" =
-   punktierte Halbe (unten ergaenzt). Ein Takt = ein Text "V-V-AA".
+/* Notenzeilen. Kuerzel wie in der Rhythmus-Werkstatt (noten.js). Ein Takt =
+   ein Text "V-V-AA". Keine punktierten Noten (Toms Vorgabe fuer Klasse 5).
    takt:   t = Taktart fuer alle Takte (nur vorne ein "?"), oder
            w = Taktart je Takt + f = welche Takte ein "?" bekommen (Profi).
    luecke: "?X" = hier fehlt die Note X.
    kobold: f = Nummer des verhexten Takts (0 = erster). */
 const TAKT = [
-    { t: '3/4', b: ['V-V-V', 'H-V', 'AA-V-V', 'Hd'] },
+    { t: '3/4', b: ['V-V-V', 'H-V', 'AA-V-V', 'V-H'] },
     { t: '4/4', b: ['V-V-H', 'AA-AA-V-V', 'H-H', 'G'] },
     { t: '2/4', b: ['V-V', 'AA-V', 'H', 'V-V'] },
-    { t: '3/4', b: ['AA-AA-V', 'V-H', 'V-V-V', 'Hd'] },
+    { t: '3/4', b: ['AA-AA-V', 'V-H', 'V-V-V', 'H-V'] },
     { t: '4/4', b: ['H-V-V', 'V-AA-AA-V', 'V-V-V-V', 'G'] },
     { t: '2/4', b: ['AA-AA', 'H', 'V-AA', 'H'] },
     { w: ['4/4', '3/4', '2/4', '3/4'], f: [1, 2, 3], b: ['V-V-V-V', 'V-V-V', 'V-V', 'H-V'] },
     { w: ['4/4', '2/4', '3/4', '4/4'], f: [1, 2, 3], b: ['G', 'V-V', 'AA-AA-V', 'V-V-V-V'] },
     { w: ['3/4', '2/4', '4/4', '2/4'], f: [0, 1, 2, 3], b: ['V-AA-V', 'H', 'H-V-V', 'AA-V'] },
-    { w: ['3/4', '4/4', '2/4', '3/4'], f: [0, 1, 2, 3], b: ['Hd', 'V-V-V-V', 'AA-AA', 'H-V'] }
+    { w: ['3/4', '4/4', '2/4', '3/4'], f: [0, 1, 2, 3], b: ['V-H', 'V-V-V-V', 'AA-AA', 'H-V'] }
 ];
 const STRICH = [
-    { t: '3/4', b: ['V-V-V', 'H-V', 'V-AA-V', 'Hd'] },
+    { t: '3/4', b: ['V-V-V', 'H-V', 'V-AA-V', 'V-H'] },
     { t: '2/4', b: ['V-V', 'H', 'AA-V', 'AA-AA', 'V-Vp'] },
     { t: '4/4', b: ['V-V-H', 'AA-AA-V-V', 'G', 'V-Vp-AA-V'] },
-    { t: '3/4', b: ['H-V', 'AA-AA-V', 'V-H', 'Hd', 'AA-V-V'] },
+    { t: '3/4', b: ['H-V', 'AA-AA-V', 'V-H', 'V-V-V', 'AA-V-V'] },
     { t: '2/4', b: ['AA-AA', 'V-V', 'H', 'V-AA', 'AA-V', 'H'] },
-    { t: '4/4', b: ['H-H', 'V-AA-H', 'AA-AA-AA-AA', 'Hd-V'] },
-    { t: '3/4', b: ['V-V-V', 'AA-AA-AA', 'Hd', 'V-H'] },
+    { t: '4/4', b: ['H-H', 'V-AA-H', 'AA-AA-AA-AA', 'V-H-V'] },
+    { t: '3/4', b: ['V-V-V', 'AA-AA-AA', 'H-V', 'V-H'] },
     { t: '4/4', b: ['V-V-V-V', 'H-AA-V', 'V-H-V', 'G'] }
 ];
 const LUECKE = [
     { t: '4/4', b: ['V-V-?V-V', 'H-V-V', 'AA-AA-?H', 'G'] },
-    { t: '3/4', b: ['V-V-V', '?H-V', 'AA-V-V', '?Hd'] },
+    { t: '3/4', b: ['V-V-V', '?H-V', 'AA-V-V', 'V-?H'] },
     { t: '2/4', b: ['V-?V', 'H', 'AA-AA', '?H'] },
     { t: '4/4', b: ['?G', 'V-V-H', 'AA-V-?V-V', 'H-H'] },
-    { t: '3/4', b: ['H-?V', 'AA-AA-AA', 'V-?H', 'Hd'] },
-    { t: '4/4', b: ['?Hd-V', 'V-V-V-V', 'H-?H', 'V-AA-H'] },
+    { t: '3/4', b: ['H-?V', 'AA-AA-AA', 'V-?H', 'V-V-V'] },
+    { t: '4/4', b: ['?H-V-V', 'V-V-V-V', 'H-?H', 'V-AA-H'] },
     { t: '2/4', b: ['AA-?V', 'V-V', '?H', 'V-AA'] },
-    { t: '3/4', b: ['?Hd', 'V-V-V', 'H-?V', 'AA-?V-V'] }
+    { t: '3/4', b: ['?V-H', 'V-V-V', 'H-?V', 'AA-?V-V'] }
 ];
-const LUECKE_WAHL = ['G', 'Hd', 'H', 'V', 'A'];
-const LUECKE_NAME = { G: 'Ganze', Hd: 'punktierte Halbe', H: 'Halbe', V: 'Viertel', A: 'Achtel' };
+const LUECKE_WAHL = ['G', 'H', 'V', 'A'];
+const LUECKE_NAME = { G: 'Ganze', H: 'Halbe', V: 'Viertel', A: 'Achtel' };
 const KOBOLD = [
-    { t: '3/4', b: ['V-V-V', 'H-V', 'V-V-V-V', 'Hd'], f: 2 },
+    { t: '3/4', b: ['V-V-V', 'H-V', 'V-V-V-V', 'H-V'], f: 2 },
     { t: '2/4', b: ['V-V', 'AA-AA', 'H-V', 'V-V'], f: 2 },
     { t: '4/4', b: ['V-V-H', 'G', 'H-V', 'AA-AA-V-V'], f: 2 },
-    { t: '3/4', b: ['Hd', 'V-H', 'AA-V-V', 'H-H'], f: 3 },
-    { t: '4/4', b: ['AA-V-H', 'Hd-V', 'V-V-V-V-V', 'H-H'], f: 2 },
-    { t: '2/4', b: ['V-AA', 'H', 'Hd', 'AA-V'], f: 2 }
+    { t: '3/4', b: ['V-H', 'H-V', 'AA-V-V', 'H-H'], f: 3 },
+    { t: '4/4', b: ['AA-V-H', 'H-V-V', 'V-V-V-V-V', 'H-H'], f: 2 },
+    { t: '2/4', b: ['V-AA', 'H', 'V-V-V', 'AA-V'], f: 2 }
 ];
 // Erste Antwort ist jeweils die richtige, gemischt wird beim Raum oeffnen
 const QUIZ = [
@@ -146,7 +146,7 @@ const QUIZ = [
     { frage: 'Zu welchem Tanz passt der 3/4-Takt?', antworten: ['Walzer', 'Marsch', 'Breakdance', 'Pogo'] },
     { frage: 'Ein Marsch steht meistens im …', antworten: ['2/4-Takt.', '3/4-Takt.', '5/4-Takt.', 'Schneckentempo.'] },
     { frage: 'Wie viele Viertel passen in einen 4/4-Takt?', antworten: ['4', '3', '2', '44'] },
-    { frage: 'Welche Note füllt allein einen ganzen 3/4-Takt?', antworten: ['Die punktierte Halbe.', 'Die Ganze.', 'Die Achtel.', 'Die Kobold-Note.'] },
+    { frage: 'Welche Note füllt allein einen ganzen 4/4-Takt?', antworten: ['Die Ganze.', 'Die Halbe.', 'Die Achtel.', 'Die Kobold-Note.'] },
     { frage: '„We Will Rock You“: stampf – stampf – klatsch – Pause. Welche Taktart?', antworten: ['4/4-Takt', '3/4-Takt', '2/4-Takt', 'Gar keine, das ist nur Lärm.'] },
     { frage: 'Ein Pinguin watschelt: links – rechts – links – rechts. Welche Taktart passt am besten?', antworten: ['2/4-Takt', '3/4-Takt', '7/8-Takt', 'Pinguine haben keinen Takt.'] }
 ];
@@ -166,8 +166,6 @@ const TEIL_INFO = {
 const ZEIT_STANDARD = { hoer: 30, klopf: 40, klick: 20, takt: 45, strich: 60, luecke: 45, kobold: 40, quiz: 20, hoeren: 10 };
 
 /* ---------- Noten ---------- */
-// Punktierte Halbe fehlt in noten.js (dort kommen 3/4-Takte ohne sie aus) - der Zeichner kann sie schon
-RHYTHMUS_NACH_CODE.Hd = { code: 'Hd', dauer: 3, wort: 'Punktierte Halbe', teile: [{ d: 3 }] };
 const dauerVon = (code) => (RHYTHMUS_NACH_CODE[code] || { dauer: 0 }).dauer;
 const taktDauer = (takt) => takt.split('-').reduce((s, c) => s + dauerVon(c.replace('?', '')), 0);
 

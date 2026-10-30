@@ -14,7 +14,7 @@ oder Handy mit.
 | 🕵️ Klick-Detektiv | 3 | Metronom, Schlagzeug oder Blaskapelle mit betonter 1, Tempo zufällig | richtig = 100 |
 | ✏️ Taktart eintragen | 4 | „?“ vor dem Takt antippen, Taktart wählen; 2 Profi-Zeilen mit Taktwechsel | anteilig je „?“ |
 | ┃ Taktstriche setzen | 4 | zwischen die Noten tippen, wo ein Taktstrich hingehört | richtige minus falsche Striche |
-| 🧩 Fehlende Note | 4 | „?“ antippen, Notenwert wählen (Ganze, punktierte Halbe, Halbe, Viertel, Achtel) | anteilig je „?“ |
+| 🧩 Fehlende Note | 4 | „?“ antippen, Notenwert wählen (Ganze, Halbe, Viertel, Achtel – keine punktierten Noten) | anteilig je „?“ |
 | 👺 Notenkobold | 3 | den verhexten Takt antippen, der nicht zur Taktart passt | richtig = 100 |
 | 💰 Taktarten-Millionär | 6 | Merke-Fragen mit Quatsch-Antworten | richtig = 100 |
 
